@@ -3,80 +3,233 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FitCheck</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <title>FitCheck | Your Digital Wardrobe</title>
+
+  <link rel="preconnect"
+        href="https://fonts.googleapis.com">
+  <link rel="preconnect"
+        href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f6f3;
-      color: #333;
       margin: 0;
-      text-align: center;
+      background: #faf9f7;
+      color: #29241f;
+      font-family: 'DM Sans', sans-serif;
     }
 
     header {
-      background-color: #e9ddd2;
-      padding: 30px;
+      padding: 25px 7%;
+      border-bottom: 1px solid #eee7df;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 600;
+      text-decoration: none;
+      color: #29241f;
+    }
+
+    nav {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: #82786e;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      color: #29241f;
     }
 
     main {
-      padding: 50px 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 65px 24px 90px;
     }
 
-    button {
-      background-color: #333;
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: #a79b8e;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: clamp(42px, 7vw, 64px);
+      margin: 10px 0 20px;
+      line-height: 1.05;
+    }
+
+    .intro {
+      color: #82786e;
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 35px;
+    }
+
+    .occasion-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .occasion-card {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: white;
+      border: 1px solid #eee7df;
+      border-radius: 28px;
+      padding: 20px 24px;
+    }
+
+    .occasion-icon {
+      background: #f3efe9;
+      border-radius: 20px;
+      padding: 18px;
+      font-size: 24px;
+    }
+
+    .occasion-card h3 {
+      font-size: 27px;
+      margin: 0 0 4px;
+    }
+
+    .occasion-card p {
+      color: #a79b8e;
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .wardrobe-banner {
+      display: block;
+      margin-top: 55px;
+      padding: 30px;
+      background: #2b2621;
       color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      border-radius: 30px;
+      text-decoration: none;
     }
- .wardrobe-button {
-  display: inline-block;
-  background-color: #333;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  text-decoration: none;
-  cursor: pointer;
-}
 
-.wardrobe-button:hover {
-  background-color: #555;
-} nav {
-  margin-top: 20px;
-}
+    .wardrobe-banner .eyebrow {
+      color: #d5b47c;
+    }
 
-nav a {
-  margin: 0 12px;
-  color: #333;
-  text-decoration: none;
-  font-weight: bold;
-}
+    .wardrobe-banner h2 {
+      font-size: 38px;
+      margin: 12px 0 5px;
+    }
 
-nav a:hover {
-  text-decoration: underline;
-}</style>
+    .wardrobe-banner p {
+      color: #ded7cf;
+      margin: 0;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 20px;
+      }
+
+      main {
+        padding-top: 45px;
+      }
+
+      .occasion-card {
+        padding: 16px;
+      }
+    }
+  </style>
 </head>
+
 <body>
- <header>
-  <h1>FitCheck</h1>
-  <p>More outfits. Same closet.</p>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="wardrobe.html">My Wardrobe</a>
-    <a href="outfits.html">Outfit Ideas</a>
-  </nav>
-</header>
+  <header>
+    <a class="logo" href="index.html">FitCheck</a>
+
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="wardrobe.html">My Wardrobe</a>
+      <a href="outfits.html">Outfit Ideas</a>
+    </nav>
+  </header>
 
   <main>
-    <h2>Welcome to Your Digital Wardrobe</h2>
-    <p>Organize your clothes, rediscover your style,
-       and make getting dressed easier.</p>
-<a href="wardrobe.html">
-<a href="wardrobe.html" class="wardrobe-button">
-  Explore My Wardrobe
-</a></a>  </main>
+    <p class="eyebrow">Your personal style companion</p>
+    <h1>What are we dressing for?</h1>
+    <p class="intro">
+      Your wardrobe has more possibilities than you think.
+      Rediscover your favorite pieces and find inspiration
+      for every occasion.
+    </p>
+
+    <div class="occasion-list">
+
+      <div class="occasion-card">
+        <span class="occasion-icon">💼</span>
+        <div>
+          <h3>Work</h3>
+          <p>Polished, confident, desk-to-meeting ready</p>
+        </div>
+      </div>
+
+      <div class="occasion-card">
+        <span class="occasion-icon">🍽️</span>
+        <div>
+          <h3>Dinner Out</h3>
+          <p>Effortlessly elegant for a night of good food</p>
+        </div>
+      </div>
+
+      <div class="occasion-card">
+        <span class="occasion-icon">♡</span>
+        <div>
+          <h3>Date Night</h3>
+          <p>A look that feels like you, only more magnetic</p>
+        </div>
+      </div>
+
+      <div class="occasion-card">
+        <span class="occasion-icon">☕</span>
+        <div>
+          <h3>Casual Weekend</h3>
+          <p>Relaxed, cozy, and ready for anything</p>
+        </div>
+      </div>
+
+      <div class="occasion-card">
+        <span class="occasion-icon">✨</span>
+        <div>
+          <h3>Party</h3>
+          <p>Turn heads and own the room</p>
+        </div>
+      </div>
+
+    </div>
+
+    <a class="wardrobe-banner" href="wardrobe.html">
+      <span class="eyebrow">✦ Your wardrobe</span>
+      <h2>6 pieces →</h2>
+      <p>Explore your collection and rediscover your style.</p>
+    </a>
+  </main>
 </body>
 </html>
-
