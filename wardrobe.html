@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Wardrobe | FitCheck</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f6f3;
+      color: #333;
+      margin: 0;
+    }
+
+    header {
+      background: #e9ddd2;
+      padding: 25px;
+      text-align: center;
+    }
+
+    nav a {
+      margin: 0 12px;
+      color: #333;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .wardrobe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .clothing-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 8px #00000012;
+    }
+
+    .clothing-image {
+      font-size: 65px;
+      background: #f2ede8;
+      padding: 25px;
+      border-radius: 8px;
+    }
+
+    .category {
+      color: #777;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FitCheck</h1>
+    <p>More outfits. Same closet.</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="wardrobe.html">My Wardrobe</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>My Wardrobe</h2>
+    <p>Explore the pieces already in your closet.</p>
+
+    <div class="wardrobe-grid">
+      <div class="clothing-card">
+        <div class="clothing-image">👕</div>
+        <h3>White T-Shirt</h3>
+        <p class="category">Tops</p>
+      </div>
+
+      <div class="clothing-card">
+        <div class="clothing-image">👖</div>
+        <h3>Blue Jeans</h3>
+        <p class="category">Bottoms</p>
+      </div>
+
+      <div class="clothing-card">
+        <div class="clothing-image">👗</div>
+        <h3>Black Dress</h3>
+        <p class="category">Dresses</p>
+      </div>
+
+      <div class="clothing-card">
+        <div class="clothing-image">👟</div>
+        <h3>White Sneakers</h3>
+        <p class="category">Shoes</p>
+      </div>
+
+      <div class="clothing-card">
+        <div class="clothing-image">🧥</div>
+        <h3>Denim Jacket</h3>
+        <p class="category">Outerwear</p>
+      </div>
+
+      <div class="clothing-card">
+        <div class="clothing-image">👚</div>
+        <h3>Pink Blouse</h3>
+        <p class="category">Tops</p>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
