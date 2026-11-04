@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outfit Ideas | FitCheck</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f6f3;
+      color: #333;
+      margin: 0;
+    }
+
+    header {
+      background: #e9ddd2;
+      padding: 25px;
+      text-align: center;
+    }
+
+    nav a {
+      margin: 0 12px;
+      color: #333;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .outfit-grid {
+      display: grid;
+      grid-template-columns: repeat(
+        auto-fit, minmax(220px, 1fr)
+      );
+      gap: 20px;
+    }
+
+    .outfit-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 2px 8px #00000012;
+    }
+
+    .outfit-image {
+      font-size: 50px;
+      background: #f2ede8;
+      border-radius: 8px;
+      padding: 25px 10px;
+    }
+
+    .occasion {
+      color: #777;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FitCheck</h1>
+    <p>More outfits. Same closet.</p>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="wardrobe.html">My Wardrobe</a>
+      <a href="outfits.html">Outfit Ideas</a>
+    </nav>
+  </header>
+
+  <main>
+    <h2>Outfit Ideas</h2>
+    <p>Rediscover new combinations from your closet.</p>
+
+    <div class="outfit-grid">
+      <div class="outfit-card">
+        <div class="outfit-image">👕 👖 👟</div>
+        <h3>Everyday Casual</h3>
+        <p>White T-Shirt + Blue Jeans + White Sneakers</p>
+        <p class="occasion">Casual</p>
+      </div>
+
+      <div class="outfit-card">
+        <div class="outfit-image">👚 👖 🧥</div>
+        <h3>Smart Casual</h3>
+        <p>Pink Blouse + Blue Jeans + Denim Jacket</p>
+        <p class="occasion">Work</p>
+      </div>
+
+      <div class="outfit-card">
+        <div class="outfit-image">👗 👟</div>
+        <h3>Weekend Outing</h3>
+        <p>Black Dress + White Sneakers</p>
+        <p class="occasion">Casual</p>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
