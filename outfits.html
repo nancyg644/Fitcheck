@@ -3,31 +3,88 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
   <title>Outfit Ideas | FitCheck</title>
+
+  <link rel="preconnect"
+        href="https://fonts.googleapis.com">
+  <link rel="preconnect"
+        href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f8f6f3;
-      color: #333;
       margin: 0;
+      background: #faf9f7;
+      color: #29241f;
+      font-family: 'DM Sans', sans-serif;
     }
 
     header {
-      background: #e9ddd2;
-      padding: 25px;
-      text-align: center;
+      padding: 25px 7%;
+      border-bottom: 1px solid #eee7df;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 600;
+      text-decoration: none;
+      color: #29241f;
+    }
+
+    nav {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
     }
 
     nav a {
-      margin: 0 12px;
-      color: #333;
+      color: #82786e;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      color: #29241f;
     }
 
     main {
       max-width: 1000px;
-      margin: 40px auto;
-      padding: 0 20px;
+      margin: 0 auto;
+      padding: 65px 24px 90px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: #a79b8e;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: clamp(42px, 7vw, 64px);
+      margin: 10px 0 15px;
+    }
+
+    .intro {
+      color: #82786e;
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 35px;
     }
 
     .outfit-grid {
@@ -35,34 +92,52 @@
       grid-template-columns: repeat(
         auto-fit, minmax(220px, 1fr)
       );
-      gap: 20px;
+      gap: 24px;
     }
 
     .outfit-card {
       background: white;
-      border-radius: 12px;
-      padding: 24px;
-      text-align: center;
-      box-shadow: 0 2px 8px #00000012;
+      border: 1px solid #eee7df;
+      border-radius: 24px;
+      padding: 15px;
     }
 
     .outfit-image {
-      font-size: 50px;
-      background: #f2ede8;
-      border-radius: 8px;
-      padding: 25px 10px;
+      background: #f3efe9;
+      border-radius: 18px;
+      height: 190px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 45px;
+      gap: 5px;
+    }
+
+    .outfit-card h3 {
+      font-size: 27px;
+      margin: 15px 5px 5px;
+    }
+
+    .outfit-description {
+      color: #82786e;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 5px 12px;
     }
 
     .occasion {
-      color: #777;
-      font-size: 14px;
+      color: #b66d4b;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 5px 12px;
     }
   </style>
 </head>
+
 <body>
   <header>
-    <h1>FitCheck</h1>
-    <p>More outfits. Same closet.</p>
+    <a class="logo" href="index.html">FitCheck</a>
+
     <nav>
       <a href="index.html">Home</a>
       <a href="wardrobe.html">My Wardrobe</a>
@@ -71,30 +146,46 @@
   </header>
 
   <main>
-    <h2>Outfit Ideas</h2>
-    <p>Rediscover new combinations from your closet.</p>
+    <p class="eyebrow">Styled from your closet</p>
+    <h1>A little outfit inspiration.</h1>
+    <p class="intro">
+      New combinations, familiar favorites.
+      Discover different ways to wear the pieces
+      you already own.
+    </p>
 
     <div class="outfit-grid">
+
       <div class="outfit-card">
         <div class="outfit-image">👕 👖 👟</div>
         <h3>Everyday Casual</h3>
-        <p>White T-Shirt + Blue Jeans + White Sneakers</p>
-        <p class="occasion">Casual</p>
+        <p class="outfit-description">
+          Your favorite white tee, classic denim,
+          and sneakers for an effortless everyday look.
+        </p>
+        <p class="occasion">CASUAL</p>
       </div>
 
       <div class="outfit-card">
         <div class="outfit-image">👚 👖 🧥</div>
         <h3>Smart Casual</h3>
-        <p>Pink Blouse + Blue Jeans + Denim Jacket</p>
-        <p class="occasion">Work</p>
+        <p class="outfit-description">
+          A polished blouse paired with denim and
+          a jacket for an easy desk-to-dinner outfit.
+        </p>
+        <p class="occasion">WORK</p>
       </div>
 
       <div class="outfit-card">
         <div class="outfit-image">👗 👟</div>
         <h3>Weekend Outing</h3>
-        <p>Black Dress + White Sneakers</p>
-        <p class="occasion">Casual</p>
+        <p class="outfit-description">
+          Dress down your favorite black dress with
+          white sneakers for a relaxed weekend look.
+        </p>
+        <p class="occasion">CASUAL</p>
       </div>
+
     </div>
   </main>
 </body>
