@@ -3,71 +3,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Outfit Ideas | FitCheck</title>
 
-  <link rel="preconnect"
-        href="https://fonts.googleapis.com">
-  <link rel="preconnect"
-        href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      background: #faf9f7;
+      background: #eeeae5;
       color: #29241f;
       font-family: 'DM Sans', sans-serif;
     }
 
+    /* Centered mobile app */
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      min-height: 100vh;
+      margin: 0 auto;
+      background: #faf8f5;
+      box-shadow: 0 0 40px #00000012;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+
     header {
-      padding: 25px 7%;
+      padding: 25px 24px 15px;
       border-bottom: 1px solid #eee7df;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 15px;
     }
 
     .logo {
       font-family: 'Cormorant Garamond', serif;
-      font-size: 32px;
+      font-size: 34px;
       font-weight: 600;
-      text-decoration: none;
       color: #29241f;
+      text-decoration: none;
     }
 
-    nav {
+    .profile-icon {
+      width: 38px;
+      height: 38px;
+      background: #f0ebe5;
+      border-radius: 50%;
       display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
     }
 
-    nav a {
-      color: #82786e;
-      text-decoration: none;
-      font-size: 14px;
-    }
-
-    nav a:hover {
-      color: #29241f;
-    }
+    /* Main content */
 
     main {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 65px 24px 90px;
+      flex: 1;
+      padding: 30px 22px 40px;
     }
 
     .eyebrow {
-      font-size: 12px;
-      letter-spacing: 3px;
-      color: #a79b8e;
-      text-transform: uppercase;
+      color: #b66d4b;
+      font-size: 10px;
+      letter-spacing: 2px;
       font-weight: 700;
+      text-transform: uppercase;
     }
 
     h1, h2, h3 {
@@ -76,117 +85,218 @@
     }
 
     h1 {
-      font-size: clamp(42px, 7vw, 64px);
-      margin: 10px 0 15px;
+      font-size: 34px;
+      line-height: 1.1;
+      margin: 12px 0;
+      letter-spacing: -0.5px;
     }
 
     .intro {
-      color: #82786e;
-      font-size: 17px;
+      color: #8d8379;
+      font-size: 13px;
       line-height: 1.7;
-      margin-bottom: 35px;
+      margin-bottom: 30px;
     }
 
+    /* Outfit cards */
+
     .outfit-grid {
-      display: grid;
-      grid-template-columns: repeat(
-        auto-fit, minmax(220px, 1fr)
-      );
-      gap: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
 
     .outfit-card {
-      background: white;
-      border: 1px solid #eee7df;
-      border-radius: 24px;
-      padding: 15px;
+      background: #ffffff;
+      border: 1px solid #eae3da;
+      border-radius: 22px;
+      padding: 14px;
+      overflow: hidden;
     }
 
-    .outfit-image {
-      background: #f3efe9;
-      border-radius: 18px;
-      height: 190px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 45px;
-      gap: 5px;
+    /* Clothing photos grouped into an outfit */
+
+    .outfit-images {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      height: 155px;
+      background: #f3e8d6;
+      border-radius: 16px;
+      overflow: hidden;
     }
+
+    .outfit-images img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Two-item outfits */
+
+    .outfit-images.two-items {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    /* Outfit details */
 
     .outfit-card h3 {
       font-size: 27px;
-      margin: 15px 5px 5px;
+      line-height: 1.1;
+      margin: 16px 4px 7px;
     }
 
     .outfit-description {
-      color: #82786e;
-      font-size: 14px;
+      color: #8d8379;
+      font-size: 12px;
       line-height: 1.6;
-      margin: 0 5px 12px;
+      margin: 0 4px 12px;
     }
 
     .occasion {
       color: #b66d4b;
-      font-size: 13px;
-      font-weight: 600;
-      margin: 0 5px 12px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin: 0 4px 5px;
+    }
+
+    /* Bottom navigation */
+
+    .bottom-nav {
+      position: sticky;
+      bottom: 0;
+      background: #ffffff;
+      border-top: 1px solid #eee7df;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 8px max(12px, env(safe-area-inset-bottom));
+    }
+
+    .bottom-nav a {
+      color: #93887c;
+      text-decoration: none;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      min-width: 75px;
+    }
+
+    .bottom-nav a span {
+      font-size: 22px;
+    }
+
+    .bottom-nav a.active {
+      color: #b66d4b;
+      font-weight: 700;
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <a class="logo" href="index.html">FitCheck</a>
+  <div class="app">
 
-    <nav>
-      <a href="index.html">Home</a>
-      <a href="wardrobe.html">My Wardrobe</a>
-      <a href="outfits.html">Outfit Ideas</a>
+    <!-- Header -->
+    <header>
+      <a class="logo" href="index.html">FitCheck</a>
+      <div class="profile-icon" aria-hidden="true">♡</div>
+    </header>
+
+    <main>
+      <p class="eyebrow">Styled from your closet</p>
+
+      <h1>A little outfit inspiration.</h1>
+
+      <p class="intro">
+        New combinations, familiar favorites.
+        Discover different ways to wear the pieces
+        you already own.
+      </p>
+
+      <div class="outfit-grid">
+
+        <!-- Outfit 1: Everyday Casual -->
+        <div class="outfit-card">
+
+          <div class="outfit-images">
+            <img src="images/white-tshirt.jpg" alt="White T-Shirt">
+            <img src="images/blue-jeans.jpg" alt="Blue Jeans">
+            <img src="images/white-sneakers.jpg" alt="White Sneakers">
+          </div>
+
+          <h3>Everyday Casual</h3>
+
+          <p class="outfit-description">
+            Your favorite white tee, classic denim,
+            and sneakers for an effortless everyday look.
+          </p>
+
+          <p class="occasion">CASUAL</p>
+        </div>
+
+        <!-- Outfit 2: Smart Casual -->
+        <div class="outfit-card">
+
+          <div class="outfit-images">
+            <img src="images/pink-blouse.jpg" alt="Pink Blouse">
+            <img src="images/blue-jeans.jpg" alt="Blue Jeans">
+            <img src="images/denim-jacket.jpg" alt="Denim Jacket">
+          </div>
+
+          <h3>Smart Casual</h3>
+
+          <p class="outfit-description">
+            A polished blouse paired with denim and
+            a jacket for an easy desk-to-dinner outfit.
+          </p>
+
+          <p class="occasion">WORK</p>
+        </div>
+
+        <!-- Outfit 3: Weekend Outing -->
+        <div class="outfit-card">
+
+          <div class="outfit-images two-items">
+            <img src="images/black-dress.jpg" alt="Black Dress">
+            <img src="images/white-sneakers.jpg" alt="White Sneakers">
+          </div>
+
+          <h3>Weekend Outing</h3>
+
+          <p class="outfit-description">
+            Dress down your favorite black dress with
+            white sneakers for a relaxed weekend look.
+          </p>
+
+          <p class="occasion">CASUAL</p>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Bottom navigation -->
+    <nav class="bottom-nav" aria-label="Main navigation">
+
+      <a href="index.html">
+        <span>⌂</span>
+        Home
+      </a>
+
+      <a href="wardrobe.html">
+        <span>▦</span>
+        Wardrobe
+      </a>
+
+      <a href="outfits.html" class="active" aria-current="page">
+        <span>✧</span>
+        Outfits
+      </a>
+
     </nav>
-  </header>
 
-  <main>
-    <p class="eyebrow">Styled from your closet</p>
-    <h1>A little outfit inspiration.</h1>
-    <p class="intro">
-      New combinations, familiar favorites.
-      Discover different ways to wear the pieces
-      you already own.
-    </p>
-
-    <div class="outfit-grid">
-
-      <div class="outfit-card">
-        <div class="outfit-image">👕 👖 👟</div>
-        <h3>Everyday Casual</h3>
-        <p class="outfit-description">
-          Your favorite white tee, classic denim,
-          and sneakers for an effortless everyday look.
-        </p>
-        <p class="occasion">CASUAL</p>
-      </div>
-
-      <div class="outfit-card">
-        <div class="outfit-image">👚 👖 🧥</div>
-        <h3>Smart Casual</h3>
-        <p class="outfit-description">
-          A polished blouse paired with denim and
-          a jacket for an easy desk-to-dinner outfit.
-        </p>
-        <p class="occasion">WORK</p>
-      </div>
-
-      <div class="outfit-card">
-        <div class="outfit-image">👗 👟</div>
-        <h3>Weekend Outing</h3>
-        <p class="outfit-description">
-          Dress down your favorite black dress with
-          white sneakers for a relaxed weekend look.
-        </p>
-        <p class="occasion">CASUAL</p>
-      </div>
-
-    </div>
-  </main>
+  </div>
 </body>
 </html>
