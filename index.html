@@ -3,28 +3,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FitCheck | Home</title>
 
-  <link rel="preconnect"
-        href="https://fonts.googleapis.com">
-  <link rel="preconnect"
-        href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     * {
       box-sizing: border-box;
     }
 
-   body {
-  margin: 0;
-  background: #eeeae5;
-  color: #29241f;
-  font-family: 'DM Sans', sans-serif;
-}
+    body {
+      margin: 0;
+      background: #eeeae5;
+      color: #29241f;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* Centered phone-style app */
 
     .app {
       width: 100%;
@@ -36,6 +34,8 @@
       display: flex;
       flex-direction: column;
     }
+
+    /* Header */
 
     header {
       padding: 25px 24px 15px;
@@ -64,6 +64,8 @@
       font-size: 20px;
     }
 
+    /* Main content */
+
     main {
       flex: 1;
       padding: 30px 22px 40px;
@@ -76,90 +78,108 @@
       font-weight: 700;
     }
 
-    h1, h2, h3 {
+    h1, h2 {
       font-family: 'Cormorant Garamond', serif;
       font-weight: 500;
     }
 
-   h1 {
-  font-size: 30px;
-  line-height: 1.15;
-  margin: 12px 0;
-  letter-spacing: -0.5px;
-  white-space: nowrap;
-}
+    h1 {
+      font-size: clamp(24px, 7vw, 30px);
+      line-height: 1.15;
+      margin: 12px 0;
+      letter-spacing: -0.5px;
+      white-space: nowrap;
+    }
 
-   .intro {
-  color: #82786e;
-  font-size: 13px;
-  line-height: 1.7;
-  margin-bottom: 30px;
-}
+    .intro {
+      color: #8d8379;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-bottom: 30px;
+    }
 
-   
-.occasion-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
+    /* Occasion cards */
 
-.occasion-card {
-  background: #ffffff;
-  border: 1px solid #eae3da;
-  border-radius: 18px;
-  padding: 14px 16px;
-  min-height: 76px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 16px;
-}
+    .occasion-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
 
-.occasion-icon {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  background: #f5f1eb;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #806f60;
-}
+    .occasion-card {
+      background: #ffffff;
+      border: 1px solid #eae3da;
+      border-radius: 18px;
+      padding: 14px 16px;
+      min-height: 78px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 14px;
+    }
 
-.occasion-icon svg {
-  width: 23px;
-  height: 23px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
+    /* Square icon background */
 
-.occasion-card h3 {
-  font-size: 24px;
-  margin: 0 0 4px;
-  white-space: nowrap;
-}
+    .occasion-icon {
+      width: 46px;
+      height: 46px;
+      min-width: 46px;
+      background: #f5f1eb;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #806f60;
+    }
 
-.occasion-text {
-  flex: 1;
-  min-width: 0;
-}
+    .occasion-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
 
-.occasion-text p {
-  color: #82786e;
-  font-size: 12px;
-  line-height: 1.4;
-  margin: 0;
-}
+    /* Title and description stacked vertically */
 
-.occasion-arrow {
-  color: #b5a99d;
-  font-size: 22px;
-  margin-left: auto;
-}
+    .occasion-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      flex: 1;
+      min-width: 0;
+      gap: 4px;
+    }
+
+    .occasion-text h3 {
+      font-family: 'DM Sans', sans-serif;
+      color: #29241f;
+      font-size: 15px;
+      font-weight: 600;
+      line-height: 1.3;
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    .occasion-text p {
+      color: #958a7f;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.4;
+      margin: 0;
+    }
+
+    .occasion-arrow {
+      color: #b5a99d;
+      font-size: 23px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* Wardrobe banner */
 
     .wardrobe-banner {
       display: block;
@@ -187,10 +207,12 @@
       margin: 0;
     }
 
+    /* Bottom navigation */
+
     .bottom-nav {
       position: sticky;
       bottom: 0;
-      background: white;
+      background: #ffffff;
       border-top: 1px solid #eee7df;
       display: flex;
       justify-content: space-around;
@@ -222,87 +244,102 @@
 <body>
   <div class="app">
 
+    <!-- Header -->
     <header>
       <a class="logo" href="index.html">FitCheck</a>
       <div class="profile-icon" aria-hidden="true">♡</div>
     </header>
 
-    <main> 
-<p class="eyebrow">YOUR PERSONAL STYLE COMPANION</p>
+    <main>
+      <p class="eyebrow">YOUR PERSONAL STYLE COMPANION</p>
 
-<h1>What are we dressing for?</h1>
+      <h1>What are we dressing for?</h1>
 
-<p class="intro">
-  Pick an occasion and we'll curate outfits
-  from your wardrobe.
-</p>
+      <p class="intro">
+        Pick an occasion and we'll curate outfits from your wardrobe.
+      </p>
 
-<div class="occasion-grid">
+      <div class="occasion-grid">
 
-  <div class="occasion-card">
-    <span class="occasion-icon">
-      <svg viewBox="0 0 24 24">
-        <rect x="3" y="7" width="18" height="14" rx="2"/>
-        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-        <path d="M3 12h18"/>
-      </svg>
-    </span>
-    <h3>Work</h3>
- <p>Polished looks for your 9-to-5</p>
-</div>
-<span class="occasion-arrow">›</span>
+        <!-- Work -->
+        <div class="occasion-card">
+          <span class="occasion-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="7" width="18" height="14" rx="2"/>
+              <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              <path d="M3 12h18"/>
+            </svg>
+          </span>
+          <div class="occasion-text">
+            <h3>Work</h3>
+            <p>Polished looks for your 9-to-5</p>
+          </div>
+          <span class="occasion-arrow" aria-hidden="true">›</span>
+        </div>
 
-  <div class="occasion-card">
-    <span class="occasion-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M4 3v7a3 3 0 0 0 6 0V3"/>
-        <path d="M7 3v18"/>
-        <path d="M17 21V3c-4 3-4 9 0 11h3"/>
-      </svg>
-    </span>
-    <h3>Dinner Out</h3>
- <p>Effortlessly put-together</p>
-</div>
-<span class="occasion-arrow">›</span>
+        <!-- Dinner Out -->
+        <div class="occasion-card">
+          <span class="occasion-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 3v7a3 3 0 0 0 6 0V3"/>
+              <path d="M7 3v18"/>
+              <path d="M17 21V3c-4 3-4 9 0 11h3"/>
+            </svg>
+          </span>
+          <div class="occasion-text">
+            <h3>Dinner Out</h3>
+            <p>Effortlessly put-together</p>
+          </div>
+          <span class="occasion-arrow" aria-hidden="true">›</span>
+        </div>
 
-  <div class="occasion-card">
-    <span class="occasion-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/>
-      </svg>
-    </span>
-    <h3>Date Night</h3>
-<p>Something a little special</p>
-</div>
-<span class="occasion-arrow">›</span>
+        <!-- Date Night -->
+        <div class="occasion-card">
+          <span class="occasion-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/>
+            </svg>
+          </span>
+          <div class="occasion-text">
+            <h3>Date Night</h3>
+            <p>Something a little special</p>
+          </div>
+          <span class="occasion-arrow" aria-hidden="true">›</span>
+        </div>
 
-  <div class="occasion-card">
-    <span class="occasion-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M4 8h13v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"/>
-        <path d="M17 9h2a3 3 0 0 1 0 6h-2"/>
-        <path d="M8 3v2M13 3v2"/>
-      </svg>
-    </span>
-    <h3>Casual Weekend</h3>
- <p>Relaxed and comfortable</p>
-</div>
-<span class="occasion-arrow">›</span>
+        <!-- Casual Weekend -->
+        <div class="occasion-card">
+          <span class="occasion-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 8h13v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"/>
+              <path d="M17 9h2a3 3 0 0 1 0 6h-2"/>
+              <path d="M8 3v2M13 3v2"/>
+            </svg>
+          </span>
+          <div class="occasion-text">
+            <h3>Casual Weekend</h3>
+            <p>Relaxed and comfortable</p>
+          </div>
+          <span class="occasion-arrow" aria-hidden="true">›</span>
+        </div>
 
-  <div class="occasion-card">
-    <span class="occasion-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z"/>
-      </svg>
-    </span>
-    <h3>Party</h3>
- <p>Make an entrance</p>
-</div>
-<span class="occasion-arrow">›</span>
+        <!-- Party -->
+        <div class="occasion-card">
+          <span class="occasion-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z"/>
+            </svg>
+          </span>
+          <div class="occasion-text">
+            <h3>Party</h3>
+            <p>Make an entrance</p>
+          </div>
+          <span class="occasion-arrow" aria-hidden="true">›</span>
+        </div>
 
-</div>
+      </div>
 
-
+      <!-- Wardrobe banner -->
       <a class="wardrobe-banner" href="wardrobe.html">
         <span class="eyebrow">✦ YOUR WARDROBE</span>
         <h2>6 pieces →</h2>
@@ -310,6 +347,7 @@
       </a>
     </main>
 
+    <!-- Bottom navigation -->
     <nav class="bottom-nav" aria-label="Main navigation">
       <a href="index.html" class="active" aria-current="page">
         <span>⌂</span>
@@ -328,3 +366,4 @@
   </div>
 </body>
 </html>
+
