@@ -3,74 +3,146 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
   <title>My Wardrobe | FitCheck</title>
+
+  <link rel="preconnect"
+        href="https://fonts.googleapis.com">
+  <link rel="preconnect"
+        href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f8f6f3;
-      color: #333;
       margin: 0;
+      background: #faf9f7;
+      color: #29241f;
+      font-family: 'DM Sans', sans-serif;
     }
 
     header {
-      background: #e9ddd2;
-      padding: 25px;
-      text-align: center;
+      padding: 25px 7%;
+      border-bottom: 1px solid #eee7df;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 32px;
+      font-weight: 600;
+      text-decoration: none;
+      color: #29241f;
+    }
+
+    nav {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
     }
 
     nav a {
-      margin: 0 12px;
-      color: #333;
+      color: #82786e;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    nav a:hover {
+      color: #29241f;
     }
 
     main {
       max-width: 1000px;
-      margin: 40px auto;
-      padding: 0 20px;
+      margin: 0 auto;
+      padding: 65px 24px 90px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 3px;
+      color: #a79b8e;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: clamp(42px, 7vw, 64px);
+      margin: 10px 0 15px;
+    }
+
+    .intro {
+      color: #82786e;
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 35px;
     }
 
     .wardrobe-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(
+        auto-fit, minmax(220px, 1fr)
+      );
+      gap: 24px;
     }
 
     .clothing-card {
       background: white;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 8px #00000012;
+      border: 1px solid #eee7df;
+      border-radius: 24px;
+      padding: 15px;
     }
 
     .clothing-image {
-      font-size: 65px;
-      background: #f2ede8;
-      padding: 25px;
-      border-radius: 8px;
+      background: #f3efe9;
+      border-radius: 18px;
+      height: 190px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 75px;
+    }
+
+    .clothing-card h3 {
+      font-size: 26px;
+      margin: 15px 5px 4px;
     }
 
     .category {
-      color: #777;
+      color: #b66d4b;
       font-size: 14px;
+      margin: 0 5px 12px;
     }
   </style>
 </head>
+
 <body>
   <header>
-    <h1>FitCheck</h1>
-    <p>More outfits. Same closet.</p>
+    <a class="logo" href="index.html">FitCheck</a>
+
     <nav>
       <a href="index.html">Home</a>
       <a href="wardrobe.html">My Wardrobe</a>
-        <a href="outfits.html">Outfit Ideas</a>
+      <a href="outfits.html">Outfit Ideas</a>
     </nav>
   </header>
 
   <main>
-    <h2>My Wardrobe</h2>
-    <p>Explore the pieces already in your closet.</p>
+    <p class="eyebrow">Your collection</p>
+    <h1>Everything in your closet.</h1>
+    <p class="intro">
+      A little reminder of all the pieces you already love.
+      Rediscover your wardrobe, one item at a time.
+    </p>
 
     <div class="wardrobe-grid">
       <div class="clothing-card">
