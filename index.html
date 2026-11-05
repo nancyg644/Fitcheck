@@ -94,29 +94,37 @@
       margin-bottom: 30px;
     }
 
-    .occasion-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+   
+.occasion-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
 
-    .occasion-card {
-      border-radius: 20px;
-      padding: 18px;
-      min-height: 120px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
+.occasion-card {
+  border-radius: 20px;
+  padding: 18px 20px;
+  min-height: 76px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+}
 
-    .occasion-card span {
-      font-size: 25px;
-    }
+.occasion-card span {
+  width: 36px;
+  min-width: 36px;
+  font-size: 25px;
+  text-align: center;
+}
 
-    .occasion-card h3 {
-      font-size: 23px;
-      margin: 0;
-    }
+.occasion-card h3 {
+  font-size: 25px;
+  margin: 0;
+  white-space: nowrap;
+}
+
 
     .work { background: #f1e8de; }
     .dinner { background: #ebe9e3; }
