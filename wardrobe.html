@@ -98,42 +98,60 @@
       margin-bottom: 30px;
     }
 
-    /* Wardrobe grid */
+    /* Photo-first wardrobe grid */
 
     .wardrobe-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 24px 14px;
     }
 
     .clothing-card {
-      background: #ffffff;
-      border: 1px solid #eae3da;
-      border-radius: 18px;
-      padding: 10px;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
       min-width: 0;
     }
 
     .clothing-image {
-      background: #f5f1eb;
-      border-radius: 12px;
-      height: 120px;
+      width: 100%;
+      aspect-ratio: 1 / 1.2;
+      height: auto;
+      background: #f3e8d6;
+      border-radius: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 52px;
+      font-size: 65px;
+      overflow: hidden;
     }
 
+    /* For real clothing photos added later */
+
+    .clothing-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Simple text below each tile */
+
     .clothing-card h3 {
-      font-size: 22px;
-      line-height: 1.1;
-      margin: 12px 4px 5px;
+      font-family: 'DM Sans', sans-serif;
+      color: #29241f;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.4;
+      margin: 10px 3px 3px;
     }
 
     .category {
-      color: #b66d4b;
+      color: #958a7f;
       font-size: 11px;
-      margin: 0 4px 10px;
+      line-height: 1.4;
+      margin: 0 3px;
     }
 
     /* Bottom navigation */
@@ -191,40 +209,46 @@
 
       <div class="wardrobe-grid">
 
+        <!-- White T-Shirt -->
         <div class="clothing-card">
           <div class="clothing-image">👕</div>
           <h3>White T-Shirt</h3>
-          <p class="category">Tops</p>
+          <p class="category">White short-sleeve crewneck</p>
         </div>
 
+        <!-- Blue Jeans -->
         <div class="clothing-card">
           <div class="clothing-image">👖</div>
           <h3>Blue Jeans</h3>
-          <p class="category">Bottoms</p>
+          <p class="category">Classic blue denim jeans</p>
         </div>
 
+        <!-- Black Dress -->
         <div class="clothing-card">
           <div class="clothing-image">👗</div>
           <h3>Black Dress</h3>
-          <p class="category">Dresses</p>
+          <p class="category">Simple black dress</p>
         </div>
 
+        <!-- White Sneakers -->
         <div class="clothing-card">
           <div class="clothing-image">👟</div>
           <h3>White Sneakers</h3>
-          <p class="category">Shoes</p>
+          <p class="category">White everyday sneakers</p>
         </div>
 
+        <!-- Denim Jacket -->
         <div class="clothing-card">
           <div class="clothing-image">🧥</div>
           <h3>Denim Jacket</h3>
-          <p class="category">Outerwear</p>
+          <p class="category">Classic blue denim jacket</p>
         </div>
 
+        <!-- Pink Blouse -->
         <div class="clothing-card">
           <div class="clothing-image">👚</div>
           <h3>Pink Blouse</h3>
-          <p class="category">Tops</p>
+          <p class="category">Pink casual blouse</p>
         </div>
 
       </div>
@@ -232,6 +256,7 @@
 
     <!-- Bottom navigation -->
     <nav class="bottom-nav" aria-label="Main navigation">
+
       <a href="index.html">
         <span>⌂</span>
         Home
@@ -246,6 +271,7 @@
         <span>✧</span>
         Outfits
       </a>
+
     </nav>
 
   </div>
