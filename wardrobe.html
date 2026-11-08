@@ -98,6 +98,106 @@
       margin-bottom: 30px;
     }
 
+    /* Trip filter: pick a season and a type of place to see what to pack */
+
+    .trip-filter {
+      background: #ffffff;
+      border: 1px solid #eae3da;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+
+    .trip-filter .eyebrow {
+      margin: 0 0 12px;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .filter-field label {
+      display: block;
+      color: #8d8379;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .filter-field select {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid #eae3da;
+      border-radius: 12px;
+      background: #faf8f5;
+      color: #29241f;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .filter-field select:focus-visible,
+    .clear-filters:focus-visible {
+      outline: 3px solid #b66d4b;
+      outline-offset: 2px;
+    }
+
+    .filter-summary {
+      color: #8d8379;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0 0 18px;
+      min-height: 18px;
+    }
+
+    .clear-filters {
+      background: none;
+      border: none;
+      padding: 0;
+      margin-left: 6px;
+      color: #b66d4b;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Shown when no piece fits the chosen trip */
+
+    .empty-state {
+      background: #ffffff;
+      border: 1px dashed #d9cbbb;
+      border-radius: 18px;
+      padding: 26px 20px;
+      text-align: center;
+    }
+
+    .empty-state h2 {
+      font-size: 24px;
+      line-height: 1.2;
+      margin: 0 0 8px;
+    }
+
+    .empty-state p {
+      color: #8d8379;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 0 0 14px;
+    }
+
+    .empty-state .clear-filters {
+      margin-left: 0;
+      font-size: 13px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
     /* Wardrobe grid */
 
     .wardrobe-grid {
@@ -194,10 +294,49 @@
         Rediscover your wardrobe, one item at a time.
       </p>
 
+      <!-- Trip filter -->
+      <section class="trip-filter" aria-labelledby="trip-filter-title">
+        <p class="eyebrow" id="trip-filter-title">Packing for a trip?</p>
+        <div class="filter-row">
+          <div class="filter-field">
+            <label for="season-filter">Season</label>
+            <select id="season-filter">
+              <option value="">Any season</option>
+              <option value="spring">Spring</option>
+              <option value="summer">Summer</option>
+              <option value="fall">Fall</option>
+              <option value="winter">Winter</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="place-filter">Place</label>
+            <select id="place-filter">
+              <option value="">Any place</option>
+              <option value="beach">Beach</option>
+              <option value="city">City</option>
+              <option value="mountains">Mountains</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <p class="filter-summary">
+        <span id="filter-summary" aria-live="polite"></span>
+        <button class="clear-filters" type="button" data-clear-filters hidden>Clear filters</button>
+      </p>
+
+      <!-- Shown only when no piece fits the chosen trip -->
+      <div class="empty-state" id="empty-state" hidden>
+        <h2 id="empty-title">Nothing fits this trip yet.</h2>
+        <p>Try a different season or place to see what you could pack.</p>
+        <button class="clear-filters" type="button" data-clear-filters>Clear filters</button>
+      </div>
+
+      <!-- Each piece lists the seasons and places it works for -->
       <div class="wardrobe-grid">
 
         <!-- White T-Shirt -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-seasons="spring summer" data-places="beach city mountains">
           <div class="clothing-image">
             <img src="images/white-tshirt.jpg" alt="White T-Shirt">
           </div>
@@ -205,7 +344,7 @@
         </div>
 
         <!-- Blue Jeans -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-seasons="spring fall winter" data-places="city mountains">
           <div class="clothing-image">
             <img src="images/blue-jeans.jpg" alt="Blue Jeans">
           </div>
@@ -213,7 +352,7 @@
         </div>
 
         <!-- Black Dress -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-seasons="spring summer fall" data-places="city">
           <div class="clothing-image">
             <img src="images/black-dress.jpg" alt="Black Dress">
           </div>
@@ -221,7 +360,7 @@
         </div>
 
         <!-- White Sneakers -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-seasons="spring summer fall" data-places="beach city">
           <div class="clothing-image">
             <img src="images/white-sneakers.jpg" alt="White Sneakers">
           </div>
@@ -229,7 +368,7 @@
         </div>
 
         <!-- Denim Jacket -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-seasons="spring fall" data-places="city mountains">
           <div class="clothing-image">
             <img src="images/denim-jacket.jpg" alt="Denim Jacket">
           </div>
@@ -237,7 +376,7 @@
         </div>
 
         <!-- Pink Blouse -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-seasons="spring summer" data-places="city">
           <div class="clothing-image">
             <img src="images/pink-blouse.jpg" alt="Pink Blouse">
           </div>
@@ -268,5 +407,75 @@
     </nav>
 
   </div>
+
+  <script>
+    // Trip filter: show only the pieces that work for the chosen season and place.
+    (function () {
+      const seasonSelect = document.getElementById('season-filter');
+      const placeSelect = document.getElementById('place-filter');
+      const summary = document.getElementById('filter-summary');
+      const emptyState = document.getElementById('empty-state');
+      const emptyTitle = document.getElementById('empty-title');
+      const grid = document.querySelector('.wardrobe-grid');
+      const cards = Array.from(document.querySelectorAll('.clothing-card'));
+      const clearButtons = document.querySelectorAll('[data-clear-filters]');
+      const summaryClear = document.querySelector('.filter-summary [data-clear-filters]');
+
+      // Words used to describe the trip, e.g. "a winter beach trip".
+      const placeWords = { beach: 'beach', city: 'city', mountains: 'mountain' };
+
+      function describeTrip(season, place) {
+        return ['a', season, placeWords[place], 'trip'].filter(Boolean).join(' ');
+      }
+
+      function applyFilters() {
+        const season = seasonSelect.value;
+        const place = placeSelect.value;
+        let shown = 0;
+
+        cards.forEach(function (card) {
+          const seasons = (card.dataset.seasons || '').split(' ');
+          const places = (card.dataset.places || '').split(' ');
+          // "Any season" / "Any place" has an empty value, which matches every piece.
+          const fits = (!season || seasons.includes(season)) && (!place || places.includes(place));
+          card.hidden = !fits;
+          if (fits) shown += 1;
+        });
+
+        const filtering = Boolean(season || place);
+        const trip = describeTrip(season, place);
+
+        // When nothing fits, swap the empty grid for a helpful message.
+        grid.hidden = shown === 0;
+        emptyState.hidden = shown !== 0;
+        summaryClear.hidden = !filtering || shown === 0;
+
+        if (!filtering) {
+          summary.textContent = 'Showing all ' + cards.length + ' pieces.';
+        } else if (shown === 0) {
+          summary.textContent = '0 of ' + cards.length + ' pieces work for ' + trip + '.';
+          emptyTitle.textContent = 'Nothing in your closet fits ' + trip + ' yet.';
+        } else {
+          const verb = shown === 1 ? 'works' : 'work';
+          summary.textContent = shown + ' of ' + cards.length + ' pieces ' + verb + ' for ' + trip + '.';
+        }
+      }
+
+      seasonSelect.addEventListener('change', applyFilters);
+      placeSelect.addEventListener('change', applyFilters);
+
+      clearButtons.forEach(function (button) {
+        button.addEventListener('click', function () {
+          seasonSelect.value = '';
+          placeSelect.value = '';
+          applyFilters();
+          // The button disappears once cleared, so move keyboard focus somewhere sensible.
+          seasonSelect.focus();
+        });
+      });
+
+      applyFilters();
+    })();
+  </script>
 </body>
 </html>
