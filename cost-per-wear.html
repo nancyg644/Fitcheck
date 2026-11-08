@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cost Per Wear | FitCheck</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #eeeae5; color: #29241f; font-family: 'DM Sans', sans-serif; }
+    .app { width: 100%; max-width: 420px; min-height: 100vh; margin: 0 auto; background: #faf8f5; box-shadow: 0 0 40px #00000012; display: flex; flex-direction: column; }
+    header { padding: 25px 24px 15px; border-bottom: 1px solid #eee7df; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 600; color: #29241f; text-decoration: none; }
+    .profile-icon { width: 38px; height: 38px; background: #f0ebe5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    main { flex: 1; padding: 30px 22px 40px; }
+    .eyebrow { color: #b66d4b; font-size: 10px; letter-spacing: 2px; font-weight: 700; text-transform: uppercase; }
+    h1, h2 { font-family: 'Cormorant Garamond', serif; font-weight: 500; }
+    h1 { font-size: 36px; line-height: 1.1; margin: 12px 0; letter-spacing: -0.5px; }
+    .intro { color: #8d8379; font-size: 13px; line-height: 1.7; margin-bottom: 26px; }
+    .calculator { background: #fff; border: 1px solid #eae3da; border-radius: 22px; padding: 22px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+    .hint { display: block; color: #8d8379; font-size: 11px; line-height: 1.5; margin-top: 6px; }
+    input { width: 100%; min-height: 46px; border-radius: 12px; padding: 12px 14px; background: #faf8f5; color: #29241f; border: 1px solid #e5dbd0; font: inherit; font-size: 14px; }
+    input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #b66d4b; outline-offset: 2px; }
+    .actions { display: flex; gap: 10px; margin-top: 6px; }
+    button { cursor: pointer; min-height: 46px; border: none; border-radius: 12px; font: inherit; font-size: 12px; font-weight: 700; padding: 12px; }
+    .calculate { flex: 1; background: #29241f; color: #fff; }
+    .reset { background: #f0ebe5; color: #29241f; }
+    .error { margin: 18px 0 0; padding: 12px; border-radius: 12px; background: #fff1ea; border: 1px solid #f1cdbb; color: #843d27; font-size: 12px; line-height: 1.5; }
+    .result { margin-top: 20px; background: #f3eee7; border-radius: 18px; padding: 22px; }
+    .result h2 { font-size: 25px; line-height: 1.2; margin: 6px 0 8px; overflow-wrap: anywhere; }
+    .result .amount { font-family: 'Cormorant Garamond', serif; font-size: 44px; line-height: 1.1; font-weight: 600; margin: 0; }
+    .result .note { font-size: 11px; color: #8d8379; margin-bottom: 0; line-height: 1.6; }
+    [hidden] { display: none !important; }
+    .bottom-nav { position: sticky; bottom: 0; background: #fff; border-top: 1px solid #eee7df; display: flex; justify-content: space-around; padding: 12px 8px max(12px, env(safe-area-inset-bottom)); }
+    .bottom-nav a { color: #93887c; text-decoration: none; font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 65px; text-align: center; }
+    .bottom-nav a span { font-size: 22px; }
+    .bottom-nav a.active { color: #b66d4b; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <a class="logo" href="index.html">FitCheck</a>
+      <div class="profile-icon" aria-hidden="true">♡</div>
+    </header>
+    <main>
+      <p class="eyebrow">Make the most of your wardrobe</p>
+      <h1>Cost per wear.</h1>
+      <p class="intro">How much value are you getting from the clothes you own? Enter a purchase price and the number of times you've worn a piece to find out.</p>
+      <section class="calculator" aria-label="Cost per wear calculator">
+        <form id="cost-form" novalidate>
+          <div class="field">
+            <label for="item-name">Clothing item (optional)</label>
+            <input id="item-name" type="text" maxlength="80" placeholder="e.g., Denim jacket" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="purchase-price">Purchase price ($)</label>
+            <input id="purchase-price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="e.g., 120.00" required>
+          </div>
+          <div class="field">
+            <label for="times-worn">Number of times worn</label>
+            <input id="times-worn" type="number" min="1" step="1" inputmode="numeric" placeholder="e.g., 15" required>
+            <small class="hint">Enter a whole number greater than zero.</small>
+          </div>
+          <div class="actions">
+            <button type="submit" class="calculate">Calculate</button>
+            <button type="reset" class="reset">Clear</button>
+          </div>
+        </form>
+        <p id="error-message" class="error" role="alert" hidden></p>
+        <section id="result" class="result" aria-live="polite" hidden>
+          <p class="eyebrow">Your result</p>
+          <h2 id="result-title">Your cost per wear</h2>
+          <p id="result-amount" class="amount"></p>
+          <p class="note">Purchase price ÷ number of wears. This is an estimate based on the numbers you entered, not automatically tracked wardrobe data.</p>
+        </section>
+      </section>
+    </main>
+    <nav class="bottom-nav" aria-label="Main navigation">
+      <a href="index.html"><span>⌂</span>Home</a>
+      <a href="wardrobe.html"><span>▦</span>Wardrobe</a>
+      <a href="outfits.html"><span>✧</span>Outfits</a>
+      <a href="cost-per-wear.html" class="active" aria-current="page"><span>$</span>Cost per Wear</a>
+    </nav>
+  </div>
+  <script>
+    const form = document.getElementById('cost-form');
+    const price = document.getElementById('purchase-price');
+    const wears = document.getElementById('times-worn');
+    const name = document.getElementById('item-name');
+    const error = document.getElementById('error-message');
+    const result = document.getElementById('result');
+    const amount = document.getElementById('result-amount');
+    const title = document.getElementById('result-title');
+    const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+
+    function showError(message) {
+      error.textContent = message;
+      error.hidden = false;
+      result.hidden = true;
+    }
+
+    function clearFeedback() {
+      error.hidden = true;
+      error.textContent = '';
+      result.hidden = true;
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const priceText = price.value.trim();
+      const wearText = wears.value.trim();
+      const paid = Number(priceText);
+      const times = Number(wearText);
+
+      if (!/^\d+(\.\d{1,2})?$/.test(priceText) || !Number.isFinite(paid)) {
+        showError('Please enter a valid purchase price of $0 or more, with at most two decimal places.');
+        return;
+      }
+
+      if (!/^\d+$/.test(wearText) || !Number.isSafeInteger(times) || times <= 0) {
+        showError('Please enter a whole number of wears greater than zero.');
+        return;
+      }
+
+      const perWear = paid / times;
+      if (!Number.isFinite(perWear)) {
+        showError('Those values are too large to calculate. Try smaller numbers.');
+        return;
+      }
+      title.textContent = name.value.trim() ? 'Cost per wear for ' + name.value.trim() : 'Your cost per wear';
+      amount.textContent = currency.format(perWear);
+      error.hidden = true;
+      result.hidden = false;
+    });
+
+    [price, wears, name].forEach(function (input) {
+      input.addEventListener('input', clearFeedback);
+    });
+    form.addEventListener('reset', clearFeedback);
+  </script>
+</body>
+</html>
