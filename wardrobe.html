@@ -98,6 +98,86 @@
       margin-bottom: 30px;
     }
 
+    /* Category filter chips */
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+
+    .filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .filter-chip {
+      flex: 0 0 auto;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6f655b;
+      background: #f0ebe5;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+
+    .filter-chip[aria-pressed="true"] {
+      background: #29241f;
+      color: #faf8f5;
+    }
+
+    .filter-chip:focus-visible {
+      outline: 2px solid #b66d4b;
+      outline-offset: 2px;
+    }
+
+    .filter-count {
+      color: #8d8379;
+      font-size: 12px;
+      margin: 0 0 18px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #8d8379;
+      font-size: 13px;
+      line-height: 1.7;
+      background: #f3eee8;
+      border-radius: 24px;
+      padding: 32px 20px;
+    }
+
+    .empty-state strong {
+      display: block;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 500;
+      color: #29241f;
+      margin-bottom: 4px;
+    }
+
+    .empty-state button {
+      margin-top: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: #b66d4b;
+      background: none;
+      border: 1px solid #b66d4b;
+      border-radius: 999px;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
     /* Wardrobe grid */
 
     .wardrobe-grid {
@@ -194,10 +274,30 @@
         Rediscover your wardrobe, one item at a time.
       </p>
 
+      <!-- Category filter -->
+      <div class="filter-bar" role="group" aria-label="Filter by category">
+        <button type="button" class="filter-chip" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="filter-chip" data-filter="tops" aria-pressed="false">Tops</button>
+        <button type="button" class="filter-chip" data-filter="bottoms" aria-pressed="false">Bottoms</button>
+        <button type="button" class="filter-chip" data-filter="dresses" aria-pressed="false">Dresses</button>
+        <button type="button" class="filter-chip" data-filter="outerwear" aria-pressed="false">Outerwear</button>
+        <button type="button" class="filter-chip" data-filter="shoes" aria-pressed="false">Shoes</button>
+        <button type="button" class="filter-chip" data-filter="accessories" aria-pressed="false">Accessories</button>
+      </div>
+
+      <p class="filter-count" id="filter-count" aria-live="polite">Showing all 6 pieces</p>
+
+      <div class="empty-state" id="empty-state" hidden>
+        <strong>Nothing here yet.</strong>
+        <span id="empty-message">You don't have any pieces in this category.</span>
+        <br>
+        <button type="button" id="show-all">Show all pieces</button>
+      </div>
+
       <div class="wardrobe-grid">
 
         <!-- White T-Shirt -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-category="tops">
           <div class="clothing-image">
             <img src="images/white-tshirt.jpg" alt="White T-Shirt">
           </div>
@@ -205,7 +305,7 @@
         </div>
 
         <!-- Blue Jeans -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-category="bottoms">
           <div class="clothing-image">
             <img src="images/blue-jeans.jpg" alt="Blue Jeans">
           </div>
@@ -213,7 +313,7 @@
         </div>
 
         <!-- Black Dress -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-category="dresses">
           <div class="clothing-image">
             <img src="images/black-dress.jpg" alt="Black Dress">
           </div>
@@ -221,7 +321,7 @@
         </div>
 
         <!-- White Sneakers -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-category="shoes">
           <div class="clothing-image">
             <img src="images/white-sneakers.jpg" alt="White Sneakers">
           </div>
@@ -229,7 +329,7 @@
         </div>
 
         <!-- Denim Jacket -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-category="outerwear">
           <div class="clothing-image">
             <img src="images/denim-jacket.jpg" alt="Denim Jacket">
           </div>
@@ -237,7 +337,7 @@
         </div>
 
         <!-- Pink Blouse -->
-        <div class="clothing-card">
+        <div class="clothing-card" data-category="tops">
           <div class="clothing-image">
             <img src="images/pink-blouse.jpg" alt="Pink Blouse">
           </div>
@@ -268,5 +368,58 @@
     </nav>
 
   </div>
+  <script>
+    // Wardrobe category filter: show only the pieces in the chosen category.
+    (function () {
+      var chips = document.querySelectorAll('.filter-chip');
+      var cards = document.querySelectorAll('.clothing-card');
+      var count = document.getElementById('filter-count');
+      var empty = document.getElementById('empty-state');
+      var emptyMessage = document.getElementById('empty-message');
+      var grid = document.querySelector('.wardrobe-grid');
+
+      function applyFilter(category) {
+        var shown = 0;
+
+        cards.forEach(function (card) {
+          var match = category === 'all' || card.dataset.category === category;
+          card.hidden = !match;
+          if (match) shown++;
+        });
+
+        chips.forEach(function (chip) {
+          chip.setAttribute('aria-pressed', chip.dataset.filter === category ? 'true' : 'false');
+        });
+
+        var label = category === 'all' ? '' : ' ' + category;
+        if (category === 'all') {
+          count.textContent = 'Showing all ' + cards.length + ' pieces';
+        } else {
+          count.textContent = 'Showing ' + shown + ' of ' + cards.length + ' pieces in' + label;
+        }
+
+        empty.hidden = shown > 0;
+        grid.hidden = shown === 0;
+        count.hidden = shown === 0;
+        if (shown === 0) {
+          emptyMessage.textContent = "You don't have any" + label + ' in your wardrobe yet.';
+        }
+
+        console.log('[FitCheck] filter=' + category + ', shown=' + shown + ' of ' + cards.length);
+      }
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          applyFilter(chip.dataset.filter);
+        });
+      });
+
+      document.getElementById('show-all').addEventListener('click', function () {
+        applyFilter('all');
+      });
+
+      applyFilter('all');
+    })();
+  </script>
 </body>
 </html>
