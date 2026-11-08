@@ -98,6 +98,38 @@
       margin-bottom: 30px;
     }
 
+    /* Category filter chips */
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .filter-chip {
+      flex: 0 0 auto;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: #6f655b;
+      background: #f0ebe5;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+
+    .filter-chip[aria-pressed="true"] {
+      background: #29241f;
+      color: #faf8f5;
+    }
+
+    .filter-chip:focus-visible {
+      outline: 3px solid #b66d4b;
+      outline-offset: 2px;
+    }
+
     /* Trip filter: pick a season and a type of place to see what to pack */
 
     .trip-filter {
@@ -294,6 +326,17 @@
         Rediscover your wardrobe, one item at a time.
       </p>
 
+      <!-- Category filter -->
+      <div class="filter-bar" role="group" aria-label="Filter by category">
+        <button type="button" class="filter-chip" data-filter="all" aria-pressed="true">All</button>
+        <button type="button" class="filter-chip" data-filter="tops" aria-pressed="false">Tops</button>
+        <button type="button" class="filter-chip" data-filter="bottoms" aria-pressed="false">Bottoms</button>
+        <button type="button" class="filter-chip" data-filter="dresses" aria-pressed="false">Dresses</button>
+        <button type="button" class="filter-chip" data-filter="outerwear" aria-pressed="false">Outerwear</button>
+        <button type="button" class="filter-chip" data-filter="shoes" aria-pressed="false">Shoes</button>
+        <button type="button" class="filter-chip" data-filter="accessories" aria-pressed="false">Accessories</button>
+      </div>
+
       <!-- Trip filter -->
       <section class="trip-filter" aria-labelledby="trip-filter-title">
         <p class="eyebrow" id="trip-filter-title">Packing for a trip?</p>
@@ -328,7 +371,7 @@
       <!-- Shown only when no piece fits the chosen trip -->
       <div class="empty-state" id="empty-state" hidden>
         <h2 id="empty-title">Nothing fits this trip yet.</h2>
-        <p>Try a different season or place to see what you could pack.</p>
+        <p>Try a different category, season, or place to see what you could wear.</p>
         <button class="clear-filters" type="button" data-clear-filters>Clear filters</button>
       </div>
 
@@ -336,7 +379,7 @@
       <div class="wardrobe-grid">
 
         <!-- White T-Shirt -->
-        <div class="clothing-card" data-seasons="spring summer" data-places="beach city mountains">
+        <div class="clothing-card" data-category="tops" data-seasons="spring summer" data-places="beach city mountains">
           <div class="clothing-image">
             <img src="images/white-tshirt.jpg" alt="White T-Shirt">
           </div>
@@ -344,7 +387,7 @@
         </div>
 
         <!-- Blue Jeans -->
-        <div class="clothing-card" data-seasons="spring fall winter" data-places="city mountains">
+        <div class="clothing-card" data-category="bottoms" data-seasons="spring fall winter" data-places="city mountains">
           <div class="clothing-image">
             <img src="images/blue-jeans.jpg" alt="Blue Jeans">
           </div>
@@ -352,7 +395,7 @@
         </div>
 
         <!-- Black Dress -->
-        <div class="clothing-card" data-seasons="spring summer fall" data-places="city">
+        <div class="clothing-card" data-category="dresses" data-seasons="spring summer fall" data-places="city">
           <div class="clothing-image">
             <img src="images/black-dress.jpg" alt="Black Dress">
           </div>
@@ -360,7 +403,7 @@
         </div>
 
         <!-- White Sneakers -->
-        <div class="clothing-card" data-seasons="spring summer fall" data-places="beach city">
+        <div class="clothing-card" data-category="shoes" data-seasons="spring summer fall" data-places="beach city">
           <div class="clothing-image">
             <img src="images/white-sneakers.jpg" alt="White Sneakers">
           </div>
@@ -368,7 +411,7 @@
         </div>
 
         <!-- Denim Jacket -->
-        <div class="clothing-card" data-seasons="spring fall" data-places="city mountains">
+        <div class="clothing-card" data-category="outerwear" data-seasons="spring fall" data-places="city mountains">
           <div class="clothing-image">
             <img src="images/denim-jacket.jpg" alt="Denim Jacket">
           </div>
@@ -376,7 +419,7 @@
         </div>
 
         <!-- Pink Blouse -->
-        <div class="clothing-card" data-seasons="spring summer" data-places="city">
+        <div class="clothing-card" data-category="tops" data-seasons="spring summer" data-places="city">
           <div class="clothing-image">
             <img src="images/pink-blouse.jpg" alt="Pink Blouse">
           </div>
@@ -409,8 +452,10 @@
   </div>
 
   <script>
-    // Trip filter: show only the pieces that work for the chosen season and place.
+    // Wardrobe filters: a piece shows only if it matches the chosen category
+    // AND works for the chosen season AND place. "All" / "Any" match everything.
     (function () {
+      const chips = document.querySelectorAll('.filter-chip');
       const seasonSelect = document.getElementById('season-filter');
       const placeSelect = document.getElementById('place-filter');
       const summary = document.getElementById('filter-summary');
@@ -420,6 +465,8 @@
       const cards = Array.from(document.querySelectorAll('.clothing-card'));
       const clearButtons = document.querySelectorAll('[data-clear-filters]');
       const summaryClear = document.querySelector('.filter-summary [data-clear-filters]');
+
+      let category = 'all';
 
       // Words used to describe the trip, e.g. "a winter beach trip".
       const placeWords = { beach: 'beach', city: 'city', mountains: 'mountain' };
@@ -436,41 +483,66 @@
         cards.forEach(function (card) {
           const seasons = (card.dataset.seasons || '').split(' ');
           const places = (card.dataset.places || '').split(' ');
-          // "Any season" / "Any place" has an empty value, which matches every piece.
-          const fits = (!season || seasons.includes(season)) && (!place || places.includes(place));
+          const fits =
+            (category === 'all' || card.dataset.category === category) &&
+            (!season || seasons.includes(season)) &&
+            (!place || places.includes(place));
           card.hidden = !fits;
           if (fits) shown += 1;
         });
 
-        const filtering = Boolean(season || place);
+        chips.forEach(function (chip) {
+          chip.setAttribute('aria-pressed', chip.dataset.filter === category ? 'true' : 'false');
+        });
+
+        const byCategory = category !== 'all';
+        const byTrip = Boolean(season || place);
         const trip = describeTrip(season, place);
 
         // When nothing fits, swap the empty grid for a helpful message.
         grid.hidden = shown === 0;
         emptyState.hidden = shown !== 0;
-        summaryClear.hidden = !filtering || shown === 0;
+        summaryClear.hidden = !(byCategory || byTrip) || shown === 0;
 
-        if (!filtering) {
+        if (!byCategory && !byTrip) {
           summary.textContent = 'Showing all ' + cards.length + ' pieces.';
         } else if (shown === 0) {
-          summary.textContent = '0 of ' + cards.length + ' pieces work for ' + trip + '.';
-          emptyTitle.textContent = 'Nothing in your closet fits ' + trip + ' yet.';
+          summary.textContent = '0 of ' + cards.length + ' pieces match.';
+          if (byCategory && byTrip) {
+            emptyTitle.textContent = 'No ' + category + ' for ' + trip + ' yet.';
+          } else if (byCategory) {
+            emptyTitle.textContent = "You don't have any " + category + ' in your wardrobe yet.';
+          } else {
+            emptyTitle.textContent = 'Nothing in your closet fits ' + trip + ' yet.';
+          }
         } else {
-          const verb = shown === 1 ? 'works' : 'work';
-          summary.textContent = shown + ' of ' + cards.length + ' pieces ' + verb + ' for ' + trip + '.';
+          summary.textContent = 'Showing ' + shown + ' of ' + cards.length + ' pieces' +
+            (byCategory ? ' in ' + category : '') +
+            (byTrip ? ' for ' + trip : '') + '.';
         }
+
+        console.log('[FitCheck] category=' + category + ', season=' + (season || 'any') +
+          ', place=' + (place || 'any') + ', shown=' + shown + ' of ' + cards.length);
       }
+
+      chips.forEach(function (chip) {
+        chip.addEventListener('click', function () {
+          category = chip.dataset.filter;
+          applyFilters();
+        });
+      });
 
       seasonSelect.addEventListener('change', applyFilters);
       placeSelect.addEventListener('change', applyFilters);
 
       clearButtons.forEach(function (button) {
         button.addEventListener('click', function () {
+          category = 'all';
           seasonSelect.value = '';
           placeSelect.value = '';
           applyFilters();
           // The button disappears once cleared, so move keyboard focus somewhere sensible.
-          seasonSelect.focus();
+          chips[0].focus();
         });
       });
 
