@@ -240,6 +240,17 @@
       color: #b66d4b;
       font-weight: 700;
     }
+    /* Link to the cost-per-wear calculator */
+    .tool-link {
+      margin-top: 12px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .tool-link:focus-visible {
+      outline: 3px solid #b66d4b;
+      outline-offset: 2px;
+    }
   </style>
 </head>
 
@@ -346,6 +357,15 @@
         <span class="eyebrow">✦ YOUR WARDROBE</span>
         <h2>6 pieces →</h2>
         <p>Rediscover what you already own →</p>
+      </a>
+      <!-- Cost-per-wear calculator: new feature page -->
+      <a class="occasion-card tool-link" href="cost-per-wear.html">
+        <span class="occasion-icon" aria-hidden="true">$</span>
+        <div class="occasion-text">
+          <h3>Cost Per Wear</h3>
+          <p>Discover the value of your favorite pieces</p>
+        </div>
+        <span class="occasion-arrow" aria-hidden="true">›</span>
       </a>
     </main>
 
