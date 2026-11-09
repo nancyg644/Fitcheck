@@ -162,6 +162,37 @@
       margin: 0 4px 5px;
     }
 
+    /* Feedback uses the same warm colors and font as the outfit cards. */
+    .outfit-feedback {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 14px 4px 4px;
+    }
+
+    .feedback-button {
+      min-height: 44px;
+      padding: 10px 14px;
+      border: 1px solid #eae3da;
+      border-radius: 22px;
+      background: #faf8f5;
+      color: #29241f;
+      font: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .feedback-button[aria-pressed="true"] {
+      background: #29241f;
+      border-color: #29241f;
+      color: #faf8f5;
+    }
+
+    .feedback-button:focus-visible {
+      outline: 3px solid #b66d4b;
+      outline-offset: 3px;
+    }
+
     /* Bottom navigation */
 
     .bottom-nav {
@@ -235,6 +266,10 @@
           </p>
 
           <p class="occasion">CASUAL</p>
+          <div class="outfit-feedback" data-outfit-id="everyday-casual" role="group" aria-label="Feedback for Everyday Casual">
+            <button class="feedback-button" type="button" data-reaction="up" aria-label="Thumbs up for Everyday Casual" aria-pressed="false"><span aria-hidden="true">👍</span> Like</button>
+            <button class="feedback-button" type="button" data-reaction="down" aria-label="Thumbs down for Everyday Casual" aria-pressed="false"><span aria-hidden="true">👎</span> Dislike</button>
+          </div>
         </div>
 
         <!-- Outfit 2: Smart Casual -->
@@ -254,6 +289,10 @@
           </p>
 
           <p class="occasion">WORK</p>
+          <div class="outfit-feedback" data-outfit-id="smart-casual" role="group" aria-label="Feedback for Smart Casual">
+            <button class="feedback-button" type="button" data-reaction="up" aria-label="Thumbs up for Smart Casual" aria-pressed="false"><span aria-hidden="true">👍</span> Like</button>
+            <button class="feedback-button" type="button" data-reaction="down" aria-label="Thumbs down for Smart Casual" aria-pressed="false"><span aria-hidden="true">👎</span> Dislike</button>
+          </div>
         </div>
 
         <!-- Outfit 3: Weekend Outing -->
@@ -272,6 +311,10 @@
           </p>
 
           <p class="occasion">CASUAL</p>
+          <div class="outfit-feedback" data-outfit-id="weekend-outing" role="group" aria-label="Feedback for Weekend Outing">
+            <button class="feedback-button" type="button" data-reaction="up" aria-label="Thumbs up for Weekend Outing" aria-pressed="false"><span aria-hidden="true">👍</span> Like</button>
+            <button class="feedback-button" type="button" data-reaction="down" aria-label="Thumbs down for Weekend Outing" aria-pressed="false"><span aria-hidden="true">👎</span> Dislike</button>
+          </div>
         </div>
 
       </div>
@@ -298,5 +341,6 @@
     </nav>
 
   </div>
+  <script src="outfit-feedback.js"></script>
 </body>
 </html>
