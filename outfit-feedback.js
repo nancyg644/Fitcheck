@@ -1,5 +1,12 @@
+// Pure selection rule, shared by the browser and the unit test.
+function nextSelection(selected, reaction) {
+  return selected === reaction ? null : reaction;
+}
+
+if (typeof module !== 'undefined') module.exports = { nextSelection };
+
 // Each outfit has a stable ID so its feedback stays separate, even if cards move.
-document.querySelectorAll('.outfit-feedback').forEach((group) => {
+if (typeof document !== 'undefined') document.querySelectorAll('.outfit-feedback').forEach((group) => {
   const storageKey = `fitcheck:outfit-feedback:${group.dataset.outfitId}`;
   const buttons = group.querySelectorAll('[data-reaction]');
   let selected = null;
@@ -24,7 +31,7 @@ document.querySelectorAll('.outfit-feedback').forEach((group) => {
   buttons.forEach((button) => {
     button.addEventListener('click', () => {
       // Clicking the same reaction clears it; another reaction replaces it.
-      selected = selected === button.dataset.reaction ? null : button.dataset.reaction;
+      selected = nextSelection(selected, button.dataset.reaction);
       updateButtons();
 
       try {

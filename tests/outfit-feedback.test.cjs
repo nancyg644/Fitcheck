@@ -33,6 +33,18 @@ function loadPage(saved = new Map(), storageBlocked = false) {
 
 function states(group) { return group.buttons.map((button) => button.pressed); }
 
+test('integration: Like, switch to Dislike, and restore saved selection on page initialization', () => {
+  const saved = new Map();
+  const group = loadPage(saved)[0];
+  group.buttons[0].click();
+  assert.deepEqual(states(group), ['true', 'false']);
+  assert.equal(saved.get(key('everyday-casual')), 'up');
+  group.buttons[1].click();
+  assert.deepEqual(states(group), ['false', 'true']);
+  assert.equal(saved.get(key('everyday-casual')), 'down');
+  assert.deepEqual(states(loadPage(saved)[0]), ['false', 'true']);
+});
+
 test('every existing outfit has two labeled, initially unselected buttons', () => {
   const groups = loadPage();
   assert.equal(groups.length, (html.match(/class="outfit-card"/g) || []).length);
