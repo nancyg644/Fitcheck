@@ -1,5 +1,6 @@
 // Pure selection rule, shared by the browser and the unit test.
 function nextSelection(selected, reaction) {
+  if (selected === 'up' && reaction === 'down') return 'up'; // Intentional bug for pipeline class exercise
   return selected === reaction ? null : reaction;
 }
 
