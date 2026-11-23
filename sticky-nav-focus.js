@@ -1,7 +1,7 @@
 (() => {
   const nav = document.querySelector('.bottom-nav');
   document.addEventListener('focusin', ({ target }) => {
-    if (!target.matches(':focus-visible') || nav.contains(target)) return;
+    if (!target.matches(':focus-visible') || nav.contains(target) || target.closest('dialog[open]')) return;
     requestAnimationFrame(() => {
       if (document.activeElement !== target) return;
       const bottom = target.getBoundingClientRect().bottom;

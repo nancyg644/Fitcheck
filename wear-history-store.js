@@ -1,5 +1,6 @@
 const wearHistoryKey = 'fitcheck:wear-history';
 const wearRecordPrefix = `${wearHistoryKey}:`;
+const wearEntryPrefix = 'fitcheck:wear-entry:';
 
 function localWearDate(date = new Date()) {
   const year = String(date.getFullYear()).padStart(4, '0');
@@ -14,6 +15,16 @@ function isWearDate(date) {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
 }
 
+function canLogWearDate(date, today = localWearDate()) {
+  return isWearDate(date) && date <= today;
+}
+
+function newWearEntry(outfitId, date) {
+  const id = Array.from(crypto.getRandomValues(new Uint32Array(4)),
+    (value) => value.toString(16).padStart(8, '0')).join('');
+  return { id, outfitId, date, createdAt: Date.now() };
+}
+
 function readWearHistory(knownIds, storage) {
   try {
     const store = storage ?? localStorage;
@@ -23,49 +34,55 @@ function readWearHistory(knownIds, storage) {
     for (const entry of Array.isArray(stored) ? stored : []) {
       if (!entry || !knownIds.has(entry.outfitId) || !isWearDate(entry.date)) continue;
       const { outfitId, date } = entry;
-      entries.set(`${wearRecordPrefix}${date}:${outfitId}`, { outfitId, date, timestamp: 0 });
+      const id = `legacy:${date}:${outfitId}`;
+      entries.set(id, { id, outfitId, date, createdAt: 0 });
     }
     for (let i = 0; i < store.length; i++) {
       const key = store.key(i);
-      if (!key?.startsWith(wearRecordPrefix)) continue;
-      const date = key.slice(wearRecordPrefix.length, wearRecordPrefix.length + 10);
-      const outfitId = key.slice(wearRecordPrefix.length + 11);
-      if (!knownIds.has(outfitId) || !isWearDate(date) ||
-          key !== `${wearRecordPrefix}${date}:${outfitId}`) continue;
-      const value = store.getItem(key);
-      if (value === 'removed') {
-        entries.delete(key);
-      } else if (value && /^\d+$/.test(value)) {
-        entries.set(key, { outfitId, date, timestamp: Number(value) });
+      if (key?.startsWith(wearRecordPrefix)) {
+        const date = key.slice(wearRecordPrefix.length, wearRecordPrefix.length + 10);
+        const outfitId = key.slice(wearRecordPrefix.length + 11);
+        if (!knownIds.has(outfitId) || !isWearDate(date) ||
+            key !== `${wearRecordPrefix}${date}:${outfitId}`) continue;
+        const id = `legacy:${date}:${outfitId}`;
+        const value = store.getItem(key);
+        if (value === 'removed') entries.delete(id);
+        else if (value && /^\d+$/.test(value)) entries.set(id, { id, outfitId, date, createdAt: Number(value) });
       }
     }
-    return [...entries.values()]
-      .sort((a, b) => a.timestamp - b.timestamp || a.outfitId.localeCompare(b.outfitId))
-      .map(({ outfitId, date }) => ({ outfitId, date }));
+    // Read independent entries last so edits and deletions also override legacy data.
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i);
+      if (!key?.startsWith(wearEntryPrefix)) continue;
+      const id = key.slice(wearEntryPrefix.length);
+      const value = store.getItem(key);
+      if (value === 'removed') {
+        entries.delete(id);
+        continue;
+      }
+      let entry;
+      try { entry = JSON.parse(value); } catch { continue; }
+      if (id && entry?.id === id && knownIds.has(entry.outfitId) &&
+          isWearDate(entry.date) && Number.isFinite(entry.createdAt)) {
+        entries.set(id, entry);
+      }
+    }
+    return [...entries.values()];
   } catch {
     return [];
   }
 }
 
-function recordWear(entries, outfitId, date) {
-  if (!outfitId || !isWearDate(date) ||
-      entries.some((entry) => entry.outfitId === outfitId && entry.date === date)) {
-    return entries;
-  }
-  return [...entries, { outfitId, date }];
-}
-
-function undoWear(entries, outfitId, date) {
-  return entries.filter((entry) => entry.outfitId !== outfitId || entry.date !== date);
-}
-
 function newestWearsFirst(entries) {
-  return [...entries].reverse().sort((a, b) => b.date.localeCompare(a.date));
+  return [...entries].sort((a, b) => b.date.localeCompare(a.date) ||
+    b.createdAt - a.createdAt || a.id.localeCompare(b.id));
 }
 
-function writeWearRecord(outfitId, date, worn, storage) {
+function writeWearEntry(id, entry, storage) {
+  if (!id || (entry && (entry.id !== id || !entry.outfitId || !canLogWearDate(entry.date) ||
+      !Number.isFinite(entry.createdAt)))) return false;
   try {
-    (storage ?? localStorage).setItem(`${wearRecordPrefix}${date}:${outfitId}`, worn ? String(Date.now()) : 'removed');
+    (storage ?? localStorage).setItem(wearEntryPrefix + id, entry ? JSON.stringify(entry) : 'removed');
     return true;
   } catch {
     return false;
@@ -73,5 +90,5 @@ function writeWearRecord(outfitId, date, worn, storage) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { localWearDate, readWearHistory, recordWear, undoWear, newestWearsFirst, writeWearRecord };
+  module.exports = { localWearDate, canLogWearDate, newWearEntry, readWearHistory, newestWearsFirst, writeWearEntry };
 }

@@ -34,6 +34,10 @@ function matchOutfitContext(tags, criteria) {
   return { matched, missed };
 }
 
+function filterOutfitsByContext(outfits, criteria) {
+  return outfits.filter((outfit) => matchOutfitContext(outfit.context, criteria).missed.length === 0);
+}
+
 if (typeof module !== 'undefined') {
-  module.exports = { readOutfitContext, matchOutfitContext };
+  module.exports = { readOutfitContext, matchOutfitContext, filterOutfitsByContext };
 }
