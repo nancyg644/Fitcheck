@@ -3,6 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { readOutfitFeedback, clearOutfitFeedback } = require('../outfit-feedback.js');
+const { rankOutfits } = require('../outfit-ranking.js');
 
 const root = path.join(__dirname, '..');
 const script = fs.readFileSync(path.join(root, 'outfit-feedback.js'), 'utf8');
@@ -113,4 +115,42 @@ test('buttons still select, switch, and clear when storage is unavailable', () =
   assert.deepEqual(states(group), ['false', 'true']);
   group.buttons[1].click();
   assert.deepEqual(states(group), ['false', 'false']);
+});
+
+test('integration: saved reactions rank eligible outfits and reset clears only feedback', () => {
+  const saved = new Map([['fitcheck:unrelated', 'keep'], [key('retired'), 'invalid']]);
+  const storage = {
+    get length() { return saved.size; },
+    key(index) { return [...saved.keys()][index] ?? null; },
+    getItem(id) { return saved.get(id) ?? null; },
+    removeItem(id) { saved.delete(id); },
+  };
+  const catalog = [...html.matchAll(/class="outfit-card" data-occasions="([^"]+)"([\s\S]*?)data-outfit-id="([^"]+)"/g)]
+    .map(([, occasions, markup, id]) => ({
+      id,
+      occasions: occasions.split(' '),
+      itemIds: [...markup.matchAll(/data-item-id="([^"]+)"/g)].map(([, itemId]) => itemId),
+    }));
+  const candidates = catalog.filter(({ occasions }) => occasions.includes('work'));
+  const ranked = () => rankOutfits(candidates, catalog.map((outfit) => ({
+    ...outfit, reaction: readOutfitFeedback(outfit.id, storage),
+  }))).map(({ outfit, score }) => [outfit.id, score]);
+
+  const everyday = loadPage(saved)[0];
+  everyday.buttons[0].click();
+  assert.deepEqual(ranked(), [['smart-casual', 1], ['office-polish', 0]]);
+  everyday.buttons[1].click();
+  assert.deepEqual(ranked(), [['office-polish', 0], ['smart-casual', -1]]);
+  assert.equal(clearOutfitFeedback(storage), true);
+  assert.deepEqual([...saved], [['fitcheck:unrelated', 'keep']]);
+  assert.deepEqual(ranked(), [['smart-casual', 0], ['office-polish', 0]]);
+});
+
+test('unavailable storage returns neutral feedback and reports failed reset', () => {
+  const blocked = {
+    getItem() { throw new Error('Blocked'); },
+    get length() { throw new Error('Blocked'); },
+  };
+  assert.equal(readOutfitFeedback('everyday-casual', blocked), null);
+  assert.equal(clearOutfitFeedback(blocked), false);
 });

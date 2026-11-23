@@ -9,6 +9,23 @@ Use the occasion links above the outfits to switch, or choose **All outfits**
 to clear the filter. The selected occasion is part of the URL, so refreshing
 keeps the same view. Like and Dislike selections follow an outfit across views.
 
+## Personalized outfit order
+
+FitCheck filters by occasion first and ranks those outfits when you open or
+refresh Outfit Ideas. A Like gives that outfit 3 points, and a Dislike takes
+away 3 points. Each shared piece adds 1 point if it appears in another liked
+outfit and subtracts 1 if it appears in another disliked outfit. Each piece
+counts once per reaction type, so the two effects cancel when both apply.
+An outfit's own reaction only contributes the direct 3-point change.
+Feedback from any occasion can inform the order when the outfits share pieces.
+
+Higher scores appear first. Ties keep the original order, and positive scores
+show **Recommended for you**. Voting leaves the current order in place until
+the next visit or refresh. With no relevant feedback, outfits keep their
+original order. **Reset recommendation preferences** asks for confirmation,
+then clears all saved outfit Likes and Dislikes in this browser and reloads
+the current occasion. Preferences are kept in this browser's localStorage.
+
 ## Outfit feedback
 
 Open `outfits.html` in your browser. Each outfit has Like (thumbs up) and Dislike
@@ -40,10 +57,10 @@ It checks out the repository, installs Node.js 24, and runs the isolated unit te
 with the same command used locally:
 
 ```sh
-node --test tests/outfit-feedback.unit.test.cjs
+node --test tests/*.unit.test.cjs
 ```
 
-This unit test needs no package installation, browser, keys, or secrets. The full
+These unit tests need no package installation, browser, keys, or secrets. The full
 suite command above also includes integration and Playwright tests. To see CI
 results, open the repository's **Actions** tab, choose **Unit tests**, select a run,
 then open **unit-tests** and expand **Run unit tests** for the output.

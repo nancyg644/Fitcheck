@@ -119,6 +119,21 @@
       color: #faf8f5;
     }
 
+    .recommendation-label {
+      color: #806f60;
+      font-size: 11px;
+      font-weight: 700;
+      margin: 12px 4px 0;
+    }
+
+    .recommendation-settings {
+      margin-top: 20px;
+    }
+
+    #recommendation-status:empty {
+      margin: 0;
+    }
+
     .outfit-grid {
       display: flex;
       flex-direction: column;
@@ -282,9 +297,9 @@
         <div class="outfit-card" data-occasions="casual-weekend">
 
           <div class="outfit-images">
-            <img src="images/white-tshirt.jpg" alt="White T-Shirt">
-            <img src="images/blue-jeans.jpg" alt="Blue Jeans">
-            <img src="images/white-sneakers.jpg" alt="White Sneakers">
+            <img src="images/white-tshirt.jpg" data-item-id="white-tshirt" alt="White T-Shirt">
+            <img src="images/blue-jeans.jpg" data-item-id="blue-jeans" alt="Blue Jeans">
+            <img src="images/white-sneakers.jpg" data-item-id="white-sneakers" alt="White Sneakers">
           </div>
 
           <h3>Everyday Casual</h3>
@@ -305,9 +320,9 @@
         <div class="outfit-card" data-occasions="work dinner-out">
 
           <div class="outfit-images">
-            <img src="images/pink-blouse.jpg" alt="Pink Blouse">
-            <img src="images/blue-jeans.jpg" alt="Blue Jeans">
-            <img src="images/denim-jacket.jpg" alt="Denim Jacket">
+            <img src="images/pink-blouse.jpg" data-item-id="pink-blouse" alt="Pink Blouse">
+            <img src="images/blue-jeans.jpg" data-item-id="blue-jeans" alt="Blue Jeans">
+            <img src="images/denim-jacket.jpg" data-item-id="denim-jacket" alt="Denim Jacket">
           </div>
 
           <h3>Smart Casual</h3>
@@ -328,8 +343,8 @@
         <div class="outfit-card" data-occasions="casual-weekend">
 
           <div class="outfit-images two-items">
-            <img src="images/black-dress.jpg" alt="Black Dress">
-            <img src="images/white-sneakers.jpg" alt="White Sneakers">
+            <img src="images/black-dress.jpg" data-item-id="black-dress" alt="Black Dress">
+            <img src="images/white-sneakers.jpg" data-item-id="white-sneakers" alt="White Sneakers">
           </div>
 
           <h3>Weekend Outing</h3>
@@ -348,9 +363,9 @@
 
         <div class="outfit-card" data-occasions="work">
           <div class="outfit-images">
-            <img src="images/ivory-silk-blouse.jpg" alt="Ivory Silk Blouse" loading="lazy">
-            <img src="images/charcoal-pleated-trousers.jpg" alt="Charcoal Pleated Trousers" loading="lazy">
-            <img src="images/black-leather-loafers.jpg" alt="Black Leather Loafers" loading="lazy">
+            <img src="images/ivory-silk-blouse.jpg" data-item-id="ivory-silk-blouse" alt="Ivory Silk Blouse" loading="lazy">
+            <img src="images/charcoal-pleated-trousers.jpg" data-item-id="charcoal-pleated-trousers" alt="Charcoal Pleated Trousers" loading="lazy">
+            <img src="images/black-leather-loafers.jpg" data-item-id="black-leather-loafers" alt="Black Leather Loafers" loading="lazy">
           </div>
 
           <h3>Office Polish</h3>
@@ -364,9 +379,9 @@
 
         <div class="outfit-card" data-occasions="dinner-out date-night">
           <div class="outfit-images">
-            <img src="images/black-satin-halter-top.jpg" alt="Black Satin Halter Top" loading="lazy">
-            <img src="images/champagne-satin-midi-skirt.jpg" alt="Champagne Satin Midi Skirt" loading="lazy">
-            <img src="images/blush-ballet-flats.jpg" alt="Blush Ballet Flats" loading="lazy">
+            <img src="images/black-satin-halter-top.jpg" data-item-id="black-satin-halter-top" alt="Black Satin Halter Top" loading="lazy">
+            <img src="images/champagne-satin-midi-skirt.jpg" data-item-id="champagne-satin-midi-skirt" alt="Champagne Satin Midi Skirt" loading="lazy">
+            <img src="images/blush-ballet-flats.jpg" data-item-id="blush-ballet-flats" alt="Blush Ballet Flats" loading="lazy">
           </div>
 
           <h3>Satin After Dark</h3>
@@ -380,9 +395,9 @@
 
         <div class="outfit-card" data-occasions="date-night party">
           <div class="outfit-images">
-            <img src="images/burgundy-satin-cocktail-dress.jpg" alt="Burgundy Satin Cocktail Dress" loading="lazy">
-            <img src="images/pearl-drop-earrings.jpg" alt="Pearl Drop Earrings" loading="lazy">
-            <img src="images/silver-strappy-heels.jpg" alt="Silver Strappy Heels" loading="lazy">
+            <img src="images/burgundy-satin-cocktail-dress.jpg" data-item-id="burgundy-satin-cocktail-dress" alt="Burgundy Satin Cocktail Dress" loading="lazy">
+            <img src="images/pearl-drop-earrings.jpg" data-item-id="pearl-drop-earrings" alt="Pearl Drop Earrings" loading="lazy">
+            <img src="images/silver-strappy-heels.jpg" data-item-id="silver-strappy-heels" alt="Silver Strappy Heels" loading="lazy">
           </div>
 
           <h3>Burgundy Evening</h3>
@@ -396,9 +411,9 @@
 
         <div class="outfit-card" data-occasions="party">
           <div class="outfit-images">
-            <img src="images/silver-sequin-top.jpg" alt="Silver Sequin Top" loading="lazy">
-            <img src="images/black-tuxedo-trousers.jpg" alt="Black Tuxedo Trousers" loading="lazy">
-            <img src="images/silver-evening-clutch.jpg" alt="Silver Evening Clutch" loading="lazy">
+            <img src="images/silver-sequin-top.jpg" data-item-id="silver-sequin-top" alt="Silver Sequin Top" loading="lazy">
+            <img src="images/black-tuxedo-trousers.jpg" data-item-id="black-tuxedo-trousers" alt="Black Tuxedo Trousers" loading="lazy">
+            <img src="images/silver-evening-clutch.jpg" data-item-id="silver-evening-clutch" alt="Silver Evening Clutch" loading="lazy">
           </div>
 
           <h3>Silver Spotlight</h3>
@@ -410,6 +425,10 @@
           </div>
         </div>
 
+      </div>
+      <div class="recommendation-settings">
+        <button class="feedback-button" id="reset-recommendations" type="button">Reset recommendation preferences</button>
+        <p class="intro" id="recommendation-status" role="status"></p>
       </div>
     </main>
 
@@ -436,5 +455,7 @@
   </div>
   <script src="outfit-occasions.js"></script>
   <script src="outfit-feedback.js"></script>
+  <script src="outfit-ranking.js"></script>
+  <script src="outfit-recommendations.js"></script>
 </body>
 </html>

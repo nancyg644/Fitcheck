@@ -84,12 +84,62 @@ test('system: all five Home cards navigate to the matching outfits on mobile', a
   const partyLike = page.getByRole('button', { name: 'Thumbs up for Burgundy Evening' });
   await partyLike.click();
   await page.getByRole('link', { name: 'Date Night', exact: true }).click();
-  assert.deepEqual(await page.locator('.outfit-card:visible h3').allTextContents(), occasions[2][2]);
+  assert.deepEqual(await page.locator('.outfit-card:visible h3').allTextContents(), ['Burgundy Evening', 'Satin After Dark']);
   assert.equal(await partyLike.getAttribute('aria-pressed'), 'true');
   await page.getByRole('link', { name: 'All outfits', exact: true }).click();
   assert.equal(page.url(), `${base}/outfits.html`);
   assert.equal(await page.locator('.outfit-card:visible').count(), 7);
   assert.equal(await partyLike.getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(errors, []);
+});
+
+test('system: feedback personalizes eligible outfits on refresh and can be reset', async (t) => {
+  const { page, errors, base } = await openFitCheck(t);
+  const titles = () => page.locator('.outfit-card:visible h3').allTextContents();
+  const recommended = () => page.locator('.outfit-card:visible').filter({
+    has: page.getByText('Recommended for you', { exact: true }),
+  }).locator('h3').allTextContents();
+  const weekend = `${base}/outfits.html?occasion=casual-weekend`;
+  await page.goto(weekend);
+  await page.evaluate(() => localStorage.setItem('fitcheck:unrelated', 'keep'));
+  assert.deepEqual(await recommended(), []);
+  const dislike = page.getByRole('button', { name: 'Thumbs down for Everyday Casual' });
+  const like = page.getByRole('button', { name: 'Thumbs up for Everyday Casual' });
+
+  await dislike.click();
+  assert.deepEqual(await titles(), ['Everyday Casual', 'Weekend Outing']);
+  await page.reload();
+  assert.deepEqual(await titles(), ['Weekend Outing', 'Everyday Casual']);
+  assert.equal(await dislike.getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(await recommended(), []);
+
+  await like.click();
+  assert.deepEqual(await titles(), ['Weekend Outing', 'Everyday Casual']);
+  await page.reload();
+  assert.deepEqual(await titles(), ['Everyday Casual', 'Weekend Outing']);
+  assert.deepEqual(await recommended(), ['Everyday Casual', 'Weekend Outing']);
+  assert.equal(await like.getAttribute('aria-pressed'), 'true');
+
+  await Promise.all([
+    page.waitForURL(`${base}/outfits.html?occasion=work`, { waitUntil: 'load' }),
+    page.getByRole('link', { name: 'Work', exact: true }).click(),
+  ]);
+  assert.deepEqual(await titles(), ['Smart Casual', 'Office Polish']);
+  assert.deepEqual(await recommended(), ['Smart Casual']);
+  const reset = page.getByRole('button', { name: 'Reset recommendation preferences' });
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await reset.click();
+  assert.deepEqual(await recommended(), ['Smart Casual']);
+
+  page.once('dialog', (dialog) => dialog.accept());
+  await Promise.all([page.waitForEvent('load'), reset.click()]);
+  assert.equal(page.url(), `${base}/outfits.html?occasion=work`);
+  assert.deepEqual(await recommended(), []);
+  assert.equal(await page.evaluate(() => localStorage.getItem('fitcheck:unrelated')), 'keep');
+  await page.goto(weekend);
+  assert.equal(await like.getAttribute('aria-pressed'), 'false');
+  assert.equal(await dislike.getAttribute('aria-pressed'), 'false');
+  assert.deepEqual(await titles(), ['Everyday Casual', 'Weekend Outing']);
   assert.deepEqual(errors, []);
 });
 
