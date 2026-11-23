@@ -74,7 +74,7 @@ test('system: all five Home cards navigate to the matching outfits on mobile', a
   for (const [name, slug, titles] of occasions) {
     await page.goto(`${base}/index.html`);
     await page.locator('.occasion-grid').getByRole('link', { name: new RegExp(`^${name}`) }).click();
-    assert.equal(page.url(), `${base}/outfits.html?occasion=${slug}`);
+    await page.waitForURL(`${base}/outfits.html?occasion=${slug}`, { waitUntil: 'load' });
     assert.equal(await page.getByRole('heading', { level: 1 }).innerText(), `${name} outfit ideas`);
     assert.equal(await page.getByRole('link', { name, exact: true }).getAttribute('aria-current'), 'page');
     assert.deepEqual(await page.locator('.outfit-card:visible h3').allTextContents(), titles);
@@ -84,10 +84,11 @@ test('system: all five Home cards navigate to the matching outfits on mobile', a
   const partyLike = page.getByRole('button', { name: 'Thumbs up for Burgundy Evening' });
   await partyLike.click();
   await page.getByRole('link', { name: 'Date Night', exact: true }).click();
+  await page.waitForURL(`${base}/outfits.html?occasion=date-night`, { waitUntil: 'load' });
   assert.deepEqual(await page.locator('.outfit-card:visible h3').allTextContents(), ['Burgundy Evening', 'Satin After Dark']);
   assert.equal(await partyLike.getAttribute('aria-pressed'), 'true');
-  await page.getByRole('link', { name: 'All outfits', exact: true }).click();
-  assert.equal(page.url(), `${base}/outfits.html`);
+  await page.getByRole('link', { name: 'Any occasion', exact: true }).click();
+  await page.waitForURL(`${base}/outfits.html`, { waitUntil: 'load' });
   assert.equal(await page.locator('.outfit-card:visible').count(), 7);
   assert.equal(await partyLike.getAttribute('aria-pressed'), 'true');
   assert.deepEqual(errors, []);
@@ -158,10 +159,84 @@ test('system: unknown and empty occasions offer a path back to outfits', async (
     await route.fulfill({ response, body });
   });
   await page.getByRole('link', { name: 'Party', exact: true }).click();
+  await page.waitForURL(`${base}/outfits.html?occasion=party`, { waitUntil: 'load' });
   assert.equal(await page.getByRole('heading', { level: 1 }).innerText(), 'Party outfit ideas');
   assert.equal(await page.locator('.outfit-card:visible').count(), 0);
   assert.equal(await page.getByText('No outfits match this occasion.', { exact: false }).isVisible(), true);
-  await page.getByRole('link', { name: 'All outfits', exact: true }).click();
+  await page.getByRole('link', { name: 'Any occasion', exact: true }).click();
+  await page.waitForURL(`${base}/outfits.html`, { waitUntil: 'load' });
   assert.equal(await page.locator('.outfit-card:visible').count(), 7);
+  assert.deepEqual(errors, []);
+});
+
+test('system: bookmarks persist across occasions and restore the personalized view', async (t) => {
+  const { page, errors, base } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const titles = () => page.locator('.outfit-card:visible h3').allTextContents();
+  const savedView = (count) => page.getByRole('link', { name: `Saved (${count})`, exact: true });
+  const save = (name) => page.getByRole('button', { name: `Save ${name}`, exact: true });
+  const casual = `${base}/outfits.html?occasion=casual-weekend`;
+  const work = `${base}/outfits.html?occasion=work`;
+  await page.goto(casual);
+  await savedView(0).click();
+  await page.getByText('Your favorite looks, all in one place. Save outfits you love to revisit them later.', { exact: true }).waitFor();
+  assert.deepEqual(await titles(), []);
+  await page.getByRole('button', { name: 'Explore outfits' }).click();
+  await page.getByRole('heading', { name: 'Casual Weekend outfit ideas' }).waitFor();
+  await save('Everyday Casual').click();
+  assert.equal(await save('Everyday Casual').getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.getByRole('button', { name: 'Thumbs up for Everyday Casual' }).getAttribute('aria-pressed'), 'false');
+  assert.equal(await savedView(1).isVisible(), true);
+
+  await page.goto(work);
+  await save('Office Polish').click();
+  const dislike = page.getByRole('button', { name: 'Thumbs down for Smart Casual' });
+  await dislike.click();
+  await page.reload();
+  assert.deepEqual(await titles(), ['Office Polish', 'Smart Casual']);
+
+  await savedView(2).click();
+  await page.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
+  assert.equal(await page.getByRole('navigation', { name: 'Filter outfits by occasion' }).isVisible(), false);
+  assert.deepEqual((await titles()).sort(), ['Everyday Casual', 'Office Polish']);
+  await page.reload();
+  assert.deepEqual((await titles()).sort(), ['Everyday Casual', 'Office Polish']);
+  assert.equal(await save('Everyday Casual').getAttribute('aria-pressed'), 'true');
+  await save('Everyday Casual').click();
+  assert.deepEqual(await titles(), ['Office Polish']);
+  assert.equal(await savedView(1).isVisible(), true);
+  await page.getByRole('link', { name: 'All Outfits', exact: true }).click();
+  await page.getByRole('heading', { name: 'Work outfit ideas' }).waitFor();
+  assert.deepEqual(await titles(), ['Office Polish', 'Smart Casual']);
+  assert.equal(await dislike.getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.getByRole('link', { name: 'Work', exact: true }).getAttribute('aria-current'), 'page');
+
+  await savedView(1).click();
+  await page.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
+  await save('Office Polish').click();
+  const explore = page.getByRole('button', { name: 'Explore outfits' });
+  assert.equal(await explore.isVisible(), true);
+  assert.equal(await explore.evaluate((button) => button === document.activeElement), true);
+  await page.goto(`${work}#saved`);
+  assert.equal(await savedView(0).isVisible(), true);
+  assert.deepEqual(await titles(), []);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+  assert.deepEqual(errors, []);
+});
+
+test('system: blocked storage keeps bookmarks usable for the current visit', async (t) => {
+  const { page, errors, base } = await openFitCheck(t);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      get() { throw new DOMException('Blocked', 'SecurityError'); },
+    });
+  });
+  await page.goto(`${base}/outfits.html`);
+  await page.getByRole('button', { name: 'Save Everyday Casual' }).click();
+  assert.match(await page.locator('#saved-outfits-status').innerText(), /Browser storage is unavailable/);
+  await page.getByRole('link', { name: 'Saved (1)' }).click();
+  await page.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
+  assert.deepEqual(await page.locator('.outfit-card:visible h3').allTextContents(), ['Everyday Casual']);
+  await page.reload();
+  assert.equal(await page.getByRole('button', { name: 'Explore outfits' }).isVisible(), true);
   assert.deepEqual(errors, []);
 });

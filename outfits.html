@@ -100,20 +100,23 @@
 
     /* Outfit cards */
 
-    .occasion-filters {
+    .occasion-filters:not([hidden]),
+    .outfit-views:not([hidden]) {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       margin-bottom: 20px;
     }
 
-    .occasion-filters a {
+    .occasion-filters a,
+    .outfit-views a {
       display: inline-flex;
       align-items: center;
       text-decoration: none;
     }
 
-    .occasion-filters a[aria-current="page"] {
+    .occasion-filters a[aria-current="page"],
+    .outfit-views a[aria-current="page"] {
       background: #29241f;
       border-color: #29241f;
       color: #faf8f5;
@@ -126,11 +129,32 @@
       margin: 12px 4px 0;
     }
 
+    [data-outfit-view="saved"] .recommendation-label {
+      display: none;
+    }
+
+    .save-outfit {
+      margin: 4px;
+    }
+
+    .saved-outfits-empty {
+      background: #fff;
+      border: 1px solid #eae3da;
+      border-radius: 22px;
+      padding: 16px;
+    }
+
+    .saved-outfits-empty .intro {
+      margin: 0 0 12px;
+      color: #806f60;
+    }
+
     .recommendation-settings {
       margin-top: 20px;
     }
 
-    #recommendation-status:empty {
+    #recommendation-status:empty,
+    #saved-outfits-status:empty {
       margin: 0;
     }
 
@@ -281,15 +305,24 @@
         you already own.
       </p>
 
+      <nav class="outfit-views" id="outfit-views" aria-label="Outfit views" hidden>
+        <a class="feedback-button" id="view-all-outfits" href="#all-outfits">All Outfits</a>
+        <a class="feedback-button" id="view-saved-outfits" href="#saved">Saved (0)</a>
+      </nav>
+      <p class="intro" id="saved-outfits-status" role="status"></p>
       <nav class="occasion-filters" aria-label="Filter outfits by occasion">
-        <a class="feedback-button" href="outfits.html" aria-current="page">All outfits</a>
+        <a class="feedback-button" href="outfits.html" aria-current="page">Any occasion</a>
         <a class="feedback-button" href="?occasion=work">Work</a>
         <a class="feedback-button" href="?occasion=dinner-out">Dinner Out</a>
         <a class="feedback-button" href="?occasion=date-night">Date Night</a>
         <a class="feedback-button" href="?occasion=casual-weekend">Casual Weekend</a>
         <a class="feedback-button" href="?occasion=party">Party</a>
       </nav>
-      <p class="intro" id="occasion-empty" hidden>No outfits match this occasion. Choose another occasion or select All outfits.</p>
+      <p class="intro" id="occasion-empty" hidden>No outfits match this occasion. Choose another occasion or select Any occasion.</p>
+      <div class="saved-outfits-empty" id="saved-outfits-empty" hidden>
+        <p class="intro">Your favorite looks, all in one place. Save outfits you love to revisit them later.</p>
+        <button class="feedback-button" id="explore-outfits" type="button">Explore outfits</button>
+      </div>
 
       <div class="outfit-grid">
 
@@ -457,5 +490,7 @@
   <script src="outfit-feedback.js"></script>
   <script src="outfit-ranking.js"></script>
   <script src="outfit-recommendations.js"></script>
+  <script src="saved-outfits-store.js"></script>
+  <script src="saved-outfits.js"></script>
 </body>
 </html>

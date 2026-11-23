@@ -5,7 +5,7 @@ A digital wardrobe app that helps users organize their clothes and plan outfits.
 
 Open `index.html` and choose Work, Dinner Out, Date Night, Casual Weekend, or
 Party. Each card opens Outfit Ideas with two curated looks from the wardrobe.
-Use the occasion links above the outfits to switch, or choose **All outfits**
+Use the occasion links above the outfits to switch, or choose **Any occasion**
 to clear the filter. The selected occasion is part of the URL, so refreshing
 keeps the same view. Like and Dislike selections follow an outfit across views.
 
@@ -25,6 +25,20 @@ the next visit or refresh. With no relevant feedback, outfits keep their
 original order. **Reset recommendation preferences** asks for confirmation,
 then clears all saved outfit Likes and Dislikes in this browser and reloads
 the current occasion. Preferences are kept in this browser's localStorage.
+
+## Saved outfits
+
+Select **Save** on any outfit card to bookmark it. Select **Saved** at the top
+of Outfit Ideas to revisit all your bookmarks. The number beside **Saved**
+counts bookmarks across every occasion. Select **Saved** on a card again to
+remove that bookmark, or return to **All Outfits** to see your current occasion
+and personalized order. From an empty Saved view, **Explore outfits** brings
+you back to the same results.
+
+Bookmarks are stored in this browser's localStorage and survive reopening the
+page. Saving and unsaving are independent of Like and Dislike, and resetting
+recommendation preferences leaves bookmarks in place. If storage is blocked,
+you can still save outfits for the current page visit.
 
 ## Outfit feedback
 
