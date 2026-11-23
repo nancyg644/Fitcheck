@@ -182,7 +182,9 @@
       font-weight: 600;
     }
 
-    .context-selections select {
+    .context-selections select,
+    .wear-history-filter select,
+    .wear-date-dialog input {
       width: 100%;
       min-height: 44px;
       border: 1px solid #eae3da;
@@ -208,12 +210,14 @@
       min-height: 44px;
     }
 
-    #refine-outfit :focus-visible {
+    #refine-outfit :focus-visible,
+    .wear-history-filter select:focus-visible,
+    .wear-date-dialog input:focus-visible {
       outline: 3px solid #b66d4b;
       outline-offset: 2px;
     }
 
-    #context-fallback {
+    #context-empty {
       color: #806f60;
       margin-bottom: 16px;
     }
@@ -235,9 +239,35 @@
       margin: 4px;
     }
 
-    .wear-actions [aria-disabled="true"] {
-      cursor: default;
-      background: #f0ebe5;
+    .wear-date-dialog {
+      width: min(calc(100% - 32px), 360px);
+      max-height: calc(100dvh - 32px);
+      overflow: auto;
+      color: #29241f;
+      background: #fff;
+      border: 1px solid #eae3da;
+      border-radius: 22px;
+      padding: 14px;
+    }
+
+    .wear-date-dialog::backdrop {
+      background: #29241f80;
+    }
+
+    .wear-date-dialog h2 {
+      margin: 0 0 12px;
+    }
+
+    .wear-history-filter {
+      display: block;
+      margin-bottom: 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    #wear-date-error {
+      color: #806f60;
+      font-size: 12px;
     }
 
     #wear-history-list {
@@ -459,24 +489,40 @@
         </form>
       </details>
       <p class="intro" id="occasion-empty" hidden>No outfits match this occasion. Choose another occasion or select Any occasion.</p>
-      <p class="intro" id="context-fallback" hidden>No outfits match all your selections. Here are the closest options for this search.</p>
+      <p class="intro" id="context-empty" hidden>No outfits match all your selected filters. Try adjusting your preferences to see more options.</p>
       <div class="saved-outfits-empty" id="saved-outfits-empty" hidden>
         <p class="intro">Your favorite looks, all in one place. Save outfits you love to revisit them later.</p>
         <button class="feedback-button" id="explore-outfits" type="button">Explore outfits</button>
       </div>
 
       <div id="wear-history-view" hidden>
+        <div class="wear-history-filter">
+          <label for="wear-outfit-filter">Outfit</label>
+          <select id="wear-outfit-filter"><option value="">All outfits</option></select>
+        </div>
         <div class="saved-outfits-empty" id="wear-history-empty" hidden>
           <p class="intro">No outfits worn yet. Log an outfit to start your wear history.</p>
           <button class="feedback-button" id="explore-wear-outfits" type="button">Explore outfits</button>
         </div>
         <ol id="wear-history-list" aria-label="Wear entries"></ol>
       </div>
+      <dialog class="wear-date-dialog" id="wear-date-dialog" aria-labelledby="wear-date-title">
+        <form novalidate>
+          <h2 id="wear-date-title">Log wear</h2>
+          <label for="wear-date">Date worn</label>
+          <input type="date" id="wear-date" name="date" aria-describedby="wear-date-error" required autofocus>
+          <p id="wear-date-error" role="alert"></p>
+          <div class="wear-actions">
+            <button type="submit" class="feedback-button">Save wear</button>
+            <button type="button" class="feedback-button" data-cancel-wear>Cancel</button>
+          </div>
+        </form>
+      </dialog>
 
       <div class="outfit-grid">
 
         <!-- Outfit 1: Everyday Casual -->
-        <div class="outfit-card" data-occasions="casual-weekend" data-styles="classic minimalist casual" data-colors="neutrals" data-priority="comfort-first" data-weather="warm cool" data-dress-code="casual" data-setting="indoors outdoors" data-activity="walking seated">
+        <div class="outfit-card" data-occasions="casual-weekend" data-styles="classic minimalist casual" data-colors="neutrals" data-priority="comfort-first" data-weather="warm" data-dress-code="casual" data-setting="indoors outdoors" data-activity="walking seated">
 
           <div class="outfit-images">
             <img src="images/white-tshirt.jpg" data-item-id="white-tshirt" alt="White T-Shirt">
@@ -591,7 +637,7 @@
           </div>
         </div>
 
-        <div class="outfit-card" data-occasions="party" data-styles="trendy bold" data-colors="neutrals dark-colors" data-priority="style-first" data-weather="warm cool" data-dress-code="dressy" data-setting="indoors" data-activity="seated">
+        <div class="outfit-card" data-occasions="party" data-styles="trendy bold" data-colors="neutrals dark-colors" data-priority="style-first" data-weather="warm" data-dress-code="dressy" data-setting="indoors" data-activity="seated">
           <div class="outfit-images">
             <img src="images/silver-sequin-top.jpg" data-item-id="silver-sequin-top" alt="Silver Sequin Top" loading="lazy">
             <img src="images/black-tuxedo-trousers.jpg" data-item-id="black-tuxedo-trousers" alt="Black Tuxedo Trousers" loading="lazy">

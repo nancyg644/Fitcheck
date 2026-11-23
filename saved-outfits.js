@@ -6,8 +6,8 @@
   const occasionEmpty = document.getElementById('occasion-empty');
   const allIsEmpty = !occasionEmpty.hidden;
   const contextControls = document.getElementById('refine-outfit');
-  const contextFallback = document.getElementById('context-fallback');
-  const hasContextFallback = !contextFallback.hidden;
+  const contextEmpty = document.getElementById('context-empty');
+  const hasNoContextMatches = !contextEmpty.hidden;
   const recommendationSettings = main.querySelector('.recommendation-settings');
   const views = document.getElementById('outfit-views');
   const allLink = document.getElementById('view-all-outfits');
@@ -49,7 +49,7 @@
     occasionFilters.hidden = !allView;
     occasionEmpty.hidden = !allView || !allIsEmpty;
     contextControls.hidden = !allView;
-    contextFallback.hidden = !allView || !hasContextFallback;
+    contextEmpty.hidden = !allView || !hasNoContextMatches;
     recommendationSettings.hidden = !allView;
     empty.hidden = !savedView || saved.size > 0;
     history.hidden = !historyView;

@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { readOutfitContext, matchOutfitContext } = require('../outfit-context.js');
-const { rankOutfits, selectContextResults } = require('../outfit-ranking.js');
+const { readOutfitContext, matchOutfitContext, filterOutfitsByContext } = require('../outfit-context.js');
+const { rankOutfits } = require('../outfit-ranking.js');
 
 const criteria = (query) => readOutfitContext(new URLSearchParams(query));
 
@@ -24,28 +24,21 @@ test('combined context counts one match per criterion, and Both requires both se
   assert.deepEqual(matchOutfitContext({ setting: ['indoors'] }, criteria('setting=both')).matched, []);
 });
 
-test('context outranks positive feedback and profile matches, which still break context ties', () => {
+test('context excludes even a liked outfit and personalization ranks the remaining outfits', () => {
   const preferred = { id: 'preferred', itemIds: [], styles: ['classic'], context: { weather: ['warm'] } };
   const warmCoat = { id: 'coat', itemIds: [], context: { weather: ['cold'] } };
+  const parka = { id: 'parka', itemIds: [], styles: ['classic'], context: { weather: ['cold'] } };
   const feedback = [{ ...preferred, reaction: 'up' }, { ...warmCoat, reaction: 'down' }];
   const profile = { styles: ['classic'] };
   const selected = criteria('weather=cold');
-  const ranked = rankOutfits([preferred, warmCoat], feedback, profile, selected);
-  assert.deepEqual(ranked.map(({ outfit }) => outfit.id), ['coat', 'preferred']);
-  assert.deepEqual(selectContextResults(ranked, selected), { useFallback: false, results: ranked });
-
-  const unmatched = criteria('weather=hot');
-  const fallback = rankOutfits([warmCoat, preferred], feedback, profile, unmatched);
-  assert.deepEqual(selectContextResults(fallback, unmatched), { useFallback: true, results: fallback });
-  assert.deepEqual(fallback.map(({ outfit }) => outfit.id), ['preferred', 'coat']);
+  const ranked = rankOutfits(filterOutfitsByContext([preferred, warmCoat, parka], selected), feedback, profile);
+  assert.deepEqual(ranked.map(({ outfit }) => outfit.id), ['parka', 'coat']);
 });
 
-test('when no outfit meets all criteria, only the closest alternatives are shown', () => {
+test('a partial match is excluded, and no selections preserve all outfits', () => {
   const selected = criteria('weather=cold&activity=walking');
   const coat = { id: 'coat', itemIds: [], context: { weather: ['cold'], activity: ['seated'] } };
   const evening = { id: 'evening', itemIds: [], context: { weather: ['warm'], activity: ['seated'] } };
-  const ranked = rankOutfits([evening, coat], [{ ...evening, reaction: 'up' }], {}, selected);
-  assert.deepEqual(selectContextResults(ranked, selected), { useFallback: true, results: [ranked[0]] });
-  assert.deepEqual(ranked[0].context.missed, [{ field: 'activity', value: 'walking' }]);
-  assert.deepEqual(selectContextResults([], selected), { useFallback: false, results: [] });
+  assert.deepEqual(filterOutfitsByContext([evening, coat], selected), []);
+  assert.deepEqual(filterOutfitsByContext([evening, coat], []), [evening, coat]);
 });

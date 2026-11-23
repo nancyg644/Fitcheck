@@ -19,10 +19,10 @@
   const list = new Intl.ListFormat('en');
   const preferences = readStylePreferences();
   const criteria = readOutfitContext(new URLSearchParams(window.location.search));
-  const ranked = rankOutfits(candidates, feedback, preferences, criteria);
-  const { results, useFallback } = selectContextResults(ranked, criteria);
-  document.getElementById('context-fallback').hidden = !useFallback;
-  const visible = new Set(results.map(({ outfit }) => outfit));
+  const eligible = filterOutfitsByContext(candidates, criteria);
+  const results = rankOutfits(eligible, feedback, preferences);
+  document.getElementById('context-empty').hidden = !candidates.length || eligible.length > 0;
+  const visible = new Set(eligible);
   for (const outfit of candidates) outfit.card.hidden = !visible.has(outfit);
 
   function contextPhrase({ field, value }) {
@@ -37,10 +37,10 @@
     }
   }
 
-  function renderPersonalization({ outfit: { card }, score, liked, matches, context }) {
+  function renderPersonalization({ outfit: { card }, score, liked, matches }) {
     card.querySelector('.recommendation-label')?.remove();
     card.querySelector('.recommendation-explanation')?.remove();
-    if (score > 0 && !context.missed.length) {
+    if (score > 0) {
       const label = document.createElement('p');
       label.className = 'recommendation-label';
       label.textContent = 'Recommended for you';
@@ -63,15 +63,12 @@
   }
 
   for (const result of results) {
-    const { outfit: { card }, context } = result;
+    const { outfit: { card } } = result;
     renderPersonalization(result);
     if (criteria.length) {
       const explanation = document.createElement('p');
       explanation.className = 'context-explanation';
-      const notes = [];
-      if (context.matched.length) notes.push(`Matches ${list.format(context.matched.map(contextPhrase))}.`);
-      if (context.missed.length) notes.push(`Doesn’t match ${list.format(context.missed.map(contextPhrase))}.`);
-      explanation.textContent = notes.join(' ');
+      explanation.textContent = `Matches ${list.format(criteria.map(contextPhrase))}.`;
       card.querySelector('h3').after(explanation);
     }
     grid.append(card);
@@ -82,7 +79,7 @@
       id, itemIds, reaction: card.querySelector('[data-reaction][aria-pressed="true"]')?.dataset.reaction,
     }));
     // Recheck explanations for the current cards without changing order or context visibility.
-    rankOutfits(results.map(({ outfit }) => outfit), currentFeedback, preferences, criteria)
+    rankOutfits(eligible, currentFeedback, preferences)
       .forEach(renderPersonalization);
   }
 

@@ -44,6 +44,12 @@ async function openFitCheck(t, options) {
   return { page, errors, base: `http://127.0.0.1:${server.address().port}` };
 }
 
+async function logWear(page, outfit, date) {
+  await page.getByRole('button', { name: `Log wear for ${outfit}`, exact: true }).click();
+  if (date) await page.getByLabel('Date worn').fill(date);
+  await page.getByRole('button', { name: 'Save wear', exact: true }).click();
+}
+
 test('system: real Like/Dislike buttons remain mutually exclusive and survive refresh', async (t) => {
   const { page, errors, base } = await openFitCheck(t);
   await page.goto(`${base}/outfits.html`);
@@ -259,8 +265,7 @@ test('system: wear logging follows local dates and preserves bookmarks and recom
   const summary = page.locator('.outfit-card').filter({
     has: page.getByRole('heading', { name: 'Everyday Casual', exact: true, level: 3 }),
   }).locator('.wear-summary');
-  const worn = page.getByRole('button', { name: 'Worn today — Everyday Casual', exact: true });
-  const log = page.getByRole('button', { name: 'I wore this — Everyday Casual', exact: true });
+  const log = page.getByRole('button', { name: 'Log wear for Everyday Casual', exact: true });
 
   // UTC is already November 23, but it is still November 22 in New York.
   await page.clock.setFixedTime(new Date('2026-11-23T04:30:00Z'));
@@ -271,25 +276,38 @@ test('system: wear logging follows local dates and preserves bookmarks and recom
   await page.getByRole('heading', { name: 'Casual Weekend outfit ideas' }).waitFor();
   await page.getByRole('button', { name: 'Save Everyday Casual' }).click();
   await page.getByRole('button', { name: 'Thumbs down for Everyday Casual' }).click();
-  await log.click();
-  assert.equal(await worn.getAttribute('aria-disabled'), 'true');
-  // Exercise the duplicate guard even if a repeat click bypasses normal UI restrictions.
-  await worn.evaluate((button) => { button.click(); button.click(); });
+  await log.press('Enter');
+  const date = page.getByLabel('Date worn');
+  assert.equal(await date.evaluate((input) => document.activeElement === input), true);
+  await page.keyboard.press('Escape');
+  assert.equal(await page.getByRole('dialog').isVisible(), false);
+  assert.equal(await log.evaluate((button) => document.activeElement === button), true);
+  await log.press('Enter');
+  assert.equal(await date.inputValue(), '2026-11-22');
+  assert.equal(await date.getAttribute('max'), '2026-11-22');
+  await date.fill('2026-11-23');
+  await page.getByRole('button', { name: 'Save wear' }).click();
+  assert.match(await page.locator('#wear-date-error').innerText(), /today or earlier/);
+  await date.fill('');
+  await page.getByRole('button', { name: 'Save wear' }).click();
+  assert.match(await page.locator('#wear-date-error').innerText(), /valid date/);
+  await date.fill('2026-11-22');
+  await page.getByRole('button', { name: 'Save wear' }).evaluate((button) => { button.click(); button.click(); });
   assert.equal(await summary.innerText(), 'Worn 1 time · Last worn Nov 22, 2026');
   await page.reload();
-  assert.equal(await worn.isVisible(), true);
+  assert.equal(await log.isVisible(), true);
   assert.deepEqual(await page.locator('.outfit-grid .outfit-card:visible h3').allTextContents(),
     ['Weekend Outing', 'Everyday Casual']);
 
   await page.clock.setFixedTime(new Date('2026-11-23T05:30:00Z'));
   await page.reload();
-  await log.click();
+  await logWear(page, 'Everyday Casual');
   assert.equal(await summary.innerText(), 'Worn 2 times · Last worn Nov 23, 2026');
   await page.goto(work);
-  await page.getByRole('button', { name: 'I wore this — Office Polish', exact: true }).click();
+  await logWear(page, 'Office Polish');
   await history.click();
   await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
-  assert.deepEqual(await rows.locator('h2').allTextContents(), ['Office Polish', 'Everyday Casual', 'Everyday Casual']);
+  assert.deepEqual((await rows.locator('h2').allTextContents()).sort(), ['Everyday Casual', 'Everyday Casual', 'Office Polish']);
   assert.deepEqual(await rows.locator('time').evaluateAll((dates) => dates.map((date) => date.dateTime)),
     ['2026-11-23', '2026-11-23', '2026-11-22']);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
@@ -301,7 +319,13 @@ test('system: wear logging follows local dates and preserves bookmarks and recom
 
   await page.getByRole('link', { name: 'Saved (1)', exact: true }).click();
   await page.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
-  await page.getByRole('button', { name: "Undo today's wear for Everyday Casual", exact: true }).click();
+  await page.getByRole('button', { name: 'View wears for Everyday Casual' }).click();
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  assert.equal(await rows.count(), 2);
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Delete wear for Everyday Casual on Nov 23, 2026' }).click();
+  await page.getByRole('link', { name: 'Saved (1)', exact: true }).click();
+  await page.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
   assert.equal(await log.isVisible(), true);
   assert.equal(await summary.innerText(), 'Worn 1 time · Last worn Nov 22, 2026');
   assert.equal(await page.getByRole('button', { name: 'Save Everyday Casual' }).getAttribute('aria-pressed'), 'true');
@@ -314,7 +338,7 @@ test('system: wear logging follows local dates and preserves bookmarks and recom
   assert.deepEqual(errors, []);
 });
 
-test('system: blocked storage supports wear logging and undo for the visit', async (t) => {
+test('system: blocked storage supports wear logging and deletion for the visit', async (t) => {
   const { page, errors, base } = await openFitCheck(t);
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', {
@@ -322,15 +346,47 @@ test('system: blocked storage supports wear logging and undo for the visit', asy
     });
   });
   await page.goto(`${base}/outfits.html`);
-  await page.getByRole('button', { name: 'I wore this — Everyday Casual' }).click();
+  await logWear(page, 'Everyday Casual');
   assert.match(await page.locator('#wear-history-status').innerText(), /Browser storage is unavailable/);
   await page.getByRole('link', { name: 'Wear History', exact: true }).click();
   await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
   assert.deepEqual(await page.locator('#wear-history-list h2').allTextContents(), ['Everyday Casual']);
-  await page.getByRole('link', { name: 'All Outfits', exact: true }).click();
-  await page.getByRole('button', { name: "Undo today's wear for Everyday Casual" }).click();
-  await page.getByRole('link', { name: 'Wear History', exact: true }).click();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: /Delete wear for Everyday Casual/ }).click();
   await page.getByText('No outfits worn yet. Log an outfit to start your wear history.').waitFor();
+  assert.deepEqual(errors, []);
+});
+
+test('system: past and same-day wear entries stay independent through edits and refresh', async (t) => {
+  const { page, errors, base } = await openFitCheck(t, { locale: 'en-US', timezoneId: 'America/New_York' });
+  await page.clock.setFixedTime(new Date('2026-11-23T15:00:00Z'));
+  await page.goto(`${base}/outfits.html?occasion=casual-weekend`);
+  await page.evaluate(() => {
+    localStorage.setItem('fitcheck:wear-history', JSON.stringify([
+      { outfitId: 'everyday-casual', date: '2026-11-10' },
+    ]));
+    localStorage.setItem('fitcheck:wear-history:2026-11-15:everyday-casual', '100');
+  });
+  await page.reload();
+  await logWear(page, 'Everyday Casual', '2026-11-15');
+  await logWear(page, 'Everyday Casual', '2026-11-23');
+  assert.equal(await page.getByText('Worn 4 times · Last worn Nov 23, 2026', { exact: true }).isVisible(), true);
+  await page.getByRole('button', { name: 'View wears for Everyday Casual', exact: true }).click();
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  assert.equal(await page.getByLabel('Outfit', { exact: true }).inputValue(), 'everyday-casual');
+  const rows = page.locator('#wear-history-list li');
+  const dates = () => rows.locator('time').evaluateAll((nodes) => nodes.map((node) => node.dateTime));
+  assert.deepEqual(await dates(), ['2026-11-23', '2026-11-15', '2026-11-15', '2026-11-10']);
+  const ids = await rows.evaluateAll((nodes) => nodes.map((node) => node.dataset.wearId));
+  assert.equal(new Set(ids).size, 4);
+  await page.getByRole('button', { name: 'Edit date for Everyday Casual on Nov 10, 2026', exact: true }).click();
+  await page.getByLabel('Date worn').fill('2026-11-18');
+  await page.getByRole('button', { name: 'Save wear' }).click();
+  assert.deepEqual(await dates(), ['2026-11-23', '2026-11-18', '2026-11-15', '2026-11-15']);
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Delete wear for Everyday Casual on Nov 15, 2026', exact: true }).first().click();
+  await page.reload();
+  assert.deepEqual(await dates(), ['2026-11-23', '2026-11-18', '2026-11-15']);
   assert.deepEqual(errors, []);
 });
 
@@ -367,7 +423,7 @@ test('system: profile links, multiple choices, ranking explanations, and isolate
   assert.equal(await page.getByText('Matches your preferences for pastels and balanced outfits.', { exact: true }).isVisible(), true);
   await page.getByRole('button', { name: 'Thumbs up for Smart Casual', exact: true }).click();
   await page.getByRole('button', { name: 'Save Office Polish', exact: true }).click();
-  await page.getByRole('button', { name: 'I wore this — Office Polish', exact: true }).click();
+  await logWear(page, 'Office Polish');
   await page.reload();
   assert.deepEqual(await titles(), ['Smart Casual', 'Office Polish']);
 
@@ -406,12 +462,12 @@ test('system: a blocked style profile leaves outfit recommendations available', 
   assert.deepEqual(errors, []);
 });
 
-test('system: contextual results outrank preferences and explain the closest fallbacks', async (t) => {
+test('system: strict contextual filters exclude partial matches and preserve the other views', async (t) => {
   const { page, base, errors } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
   const weekend = `${base}/outfits.html?occasion=casual-weekend`;
   const refine = page.locator('#refine-outfit');
   const titles = () => page.locator('.outfit-grid .outfit-card:visible h3').allTextContents();
-  const fallback = page.getByText('No outfits match all your selections.', { exact: false });
+  const noResults = page.getByText('No outfits match all your selected filters. Try adjusting your preferences to see more options.', { exact: true });
   const apply = async (url) => {
     await page.getByRole('button', { name: 'Apply context' }).click();
     await page.waitForURL(url, { waitUntil: 'load' });
@@ -421,44 +477,46 @@ test('system: contextual results outrank preferences and explain the closest fal
   await page.evaluate((profile) => localStorage.setItem('fitcheck:style-preferences', profile), profile);
   await page.getByRole('button', { name: 'Thumbs up for Everyday Casual' }).click();
   await page.getByRole('button', { name: 'Save Everyday Casual' }).click();
-  await page.getByRole('button', { name: 'I wore this — Everyday Casual' }).click();
+  await logWear(page, 'Everyday Casual');
   await page.reload();
   assert.deepEqual(await titles(), ['Everyday Casual', 'Weekend Outing']);
   assert.equal(await refine.getAttribute('open'), null);
   await page.getByText('Refine your outfit', { exact: true }).click();
   await page.getByLabel('Weather').selectOption('hot');
   await apply(`${weekend}&weather=hot`);
-  assert.deepEqual(await titles(), ['Weekend Outing', 'Everyday Casual']);
+  assert.deepEqual(await titles(), ['Weekend Outing']);
   assert.equal(await page.getByText('Matches hot weather.', { exact: true }).isVisible(), true);
-  assert.equal(await page.getByText('Doesn’t match hot weather.', { exact: true }).isVisible(), true);
-  assert.equal(await fallback.isVisible(), false);
+  assert.equal(await noResults.isVisible(), false);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
 
   await page.getByLabel('Dress code').selectOption('dressy');
   await page.getByLabel('Setting').selectOption('both');
   await page.getByLabel('Activity level').selectOption('walking');
   await apply(`${weekend}&weather=hot&dress-code=dressy&setting=both&activity=walking`);
-  assert.deepEqual(await titles(), ['Weekend Outing']);
-  assert.equal(await fallback.isVisible(), true);
-  assert.equal(await page.getByText(/Matches hot weather.*indoor and outdoor settings.*lots of walking.*Doesn’t match a dressy dress code/).isVisible(), true);
+  assert.deepEqual(await titles(), []);
+  assert.equal(await noResults.isVisible(), true);
 
   await page.getByRole('link', { name: 'Saved (1)', exact: true }).click();
   await page.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
   assert.deepEqual(await titles(), ['Everyday Casual']);
   assert.equal(await refine.isVisible(), false);
-  assert.equal(await fallback.isVisible(), false);
+  assert.equal(await noResults.isVisible(), false);
   await page.getByRole('link', { name: 'Wear History', exact: true }).click();
   await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
   assert.deepEqual(await page.locator('#wear-history-list h2').allTextContents(), ['Everyday Casual']);
   await page.getByRole('link', { name: 'All Outfits', exact: true }).click();
   await page.getByRole('heading', { name: 'Casual Weekend outfit ideas', exact: true }).waitFor();
-  assert.deepEqual(await titles(), ['Weekend Outing']);
+  assert.deepEqual(await titles(), []);
   assert.equal(await page.getByLabel('Dress code').inputValue(), 'dressy');
 
   await page.getByLabel('Dress code').selectOption({ label: 'No preference' });
   await apply(`${weekend}&weather=hot&setting=both&activity=walking`);
-  assert.deepEqual(await titles(), ['Weekend Outing', 'Everyday Casual']);
-  assert.equal(await fallback.isVisible(), false);
+  assert.deepEqual(await titles(), ['Weekend Outing']);
+  assert.equal(await page.getByText(/Matches hot weather.*indoor and outdoor settings.*lots of walking/).isVisible(), true);
+  assert.equal(await noResults.isVisible(), false);
+  await page.getByLabel('Weather').selectOption('warm');
+  await apply(`${weekend}&weather=warm&setting=both&activity=walking`);
+  assert.deepEqual(await titles(), ['Everyday Casual', 'Weekend Outing']);
   await page.getByRole('link', { name: 'Reset context', exact: true }).click();
   await page.waitForURL(weekend, { waitUntil: 'load' });
   assert.deepEqual(await titles(), ['Everyday Casual', 'Weekend Outing']);
@@ -475,7 +533,7 @@ test('system: invalid context is ignored and an unknown occasion stays empty', a
   assert.equal(await page.locator('.context-explanation').count(), 0);
   await page.goto(`${base}/outfits.html?occasion=unknown&weather=warm`);
   assert.equal(await page.locator('#occasion-empty').isVisible(), true);
-  assert.equal(await page.locator('#context-fallback').isVisible(), false);
+  assert.equal(await page.locator('#context-empty').isVisible(), false);
   assert.equal(await page.locator('.outfit-grid .outfit-card:visible').count(), 0);
 
   await page.goto(`${base}/cost-per-wear.html`);
@@ -500,23 +558,25 @@ test('system: two tabs preserve independent bookmarks and wears and reflect remo
   ]);
   for (const page of [first, second]) await link(page, 'Saved (2)').waitFor();
   await Promise.all([
-    button(first, 'I wore this — Everyday Casual').click(),
-    button(second, 'I wore this — Office Polish').click(),
+    logWear(first, 'Everyday Casual'),
+    logWear(second, 'Everyday Casual'),
   ]);
-  await button(first, 'Worn today — Office Polish').waitFor();
-  await button(second, 'Worn today — Everyday Casual').waitFor();
+  await logWear(second, 'Office Polish');
   await link(second, 'Wear History').click();
   await second.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
   assert.deepEqual((await second.locator('#wear-history-list h2').allTextContents()).sort(),
-    ['Everyday Casual', 'Office Polish']);
+    ['Everyday Casual', 'Everyday Casual', 'Office Polish']);
 
   await button(first, 'Save Everyday Casual').click();
-  await button(first, "Undo today's wear for Everyday Casual").click();
+  await button(first, 'View wears for Everyday Casual').click();
+  await first.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  first.once('dialog', (dialog) => dialog.accept());
+  await first.getByRole('button', { name: /Delete wear for Everyday Casual/ }).first().click();
   await link(second, 'Saved (1)').waitFor();
-  await second.locator('#wear-history-list').getByRole('heading', { name: 'Everyday Casual' }).waitFor({ state: 'hidden' });
-  assert.deepEqual(await second.locator('#wear-history-list h2').allTextContents(), ['Office Polish']);
+  await second.waitForFunction(() => document.querySelectorAll('#wear-history-list li').length === 2);
+  assert.deepEqual((await second.locator('#wear-history-list h2').allTextContents()).sort(), ['Everyday Casual', 'Office Polish']);
   await second.reload();
-  assert.deepEqual(await second.locator('#wear-history-list h2').allTextContents(), ['Office Polish']);
+  assert.deepEqual((await second.locator('#wear-history-list h2').allTextContents()).sort(), ['Everyday Casual', 'Office Polish']);
   await link(second, 'Saved (1)').click();
   await second.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
   assert.deepEqual(await second.locator('.outfit-grid .outfit-card:visible h3').allTextContents(), ['Office Polish']);

@@ -39,5 +39,5 @@ test('integration: stored profile ranks the tagged occasion catalog and reset pr
   assert.equal(readOutfitFeedback(id, storage), 'up');
   const known = new Set(catalog.map((outfit) => outfit.id));
   assert.deepEqual([...readSavedOutfits(known, storage)], [id]);
-  assert.deepEqual(readWearHistory(known, storage), [wear]);
+  assert.deepEqual(readWearHistory(known, storage).map(({ outfitId, date }) => ({ outfitId, date })), [wear]);
 });

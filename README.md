@@ -34,11 +34,12 @@ Use **Reset Preferences** on your profile to clear your explicit choices.
 Likes, Dislikes, bookmarks, and wear history are kept separately. With no
 saved profile or unavailable browser storage, the profile adds no points.
 
-Higher scores appear first within the same context match count. Ties keep the
-original order, and positive scores on full context matches show
-**Recommended for you**. Voting updates or removes explanations immediately
-and leaves the current order in place until the next visit or refresh. With no context, relevant feedback, or style
-matches, outfits keep their original order. **Reset recommendation preferences** asks for confirmation,
+Higher scores appear first among outfits that pass all selected filters. Ties
+keep the original order, and positive scores show **Recommended for you**.
+Voting updates or removes explanations immediately and leaves the current
+order in place until the next visit or refresh. With no relevant feedback or
+style matches, eligible outfits keep their original order.
+**Reset recommendation preferences** asks for confirmation,
 then clears all saved outfit Likes and Dislikes in this browser and reloads
 the current occasion. Preferences are kept in this browser's localStorage.
 
@@ -50,12 +51,11 @@ suited to indoor and outdoor settings. Choose **Apply context** to update the
 results. Set a choice back to **No preference** and apply to clear that choice,
 or use **Reset context** to clear all four and keep the occasion.
 
-FitCheck filters by occasion first, then ranks outfits by the number of
-selected criteria they match. Feedback and the style profile break ties at the
-same match count. Cards explain what they match and miss. If no outfit matches
-everything, FitCheck explains the gap and shows only the closest options
-within the occasion. If the occasion itself has no outfits, it shows the
-occasion empty state.
+FitCheck requires the selected occasion and every selected context criterion
+before ranking with feedback and the style profile. Unselected criteria leave
+the results unrestricted. Cards explain what they match. If no outfit passes
+all the filters, the page shows an empty state and keeps the filter controls
+available. Saved Outfits and Wear History are available independently.
 
 Context stays in the current search URL, so refreshing or returning from
 Saved or Wear History keeps it. Picking another occasion starts a new search.
@@ -79,24 +79,25 @@ you can still save outfits for the current page visit.
 
 ## Wear history
 
-Select **I wore this** on an outfit in All Outfits or Saved. FitCheck records one
-wear per outfit per local calendar day. The card shows **Worn today**, the
-total number of logged wears, and the most recent wear date. Select **Undo**
-on that card to remove today's entry. The same outfit can be logged again on
-another day.
+Select **Log wear** on an outfit in All Outfits or Saved. The date picker starts
+on today's local date and accepts past dates. Open it again to log another wear,
+including another wear on the same day. The card shows the total number of
+logged wears and the most recent wear date.
 
 Open **Wear History** to see entries across all occasions, newest dates first.
-Each entry uses the outfit's existing photos and shows the date it was worn.
+Use **View wears** on a card or choose an outfit in Wear History to see its
+individual entries. Each entry shows its date and offers **Edit date** and
+**Delete**.
 Wear history stays in this browser's localStorage and is independent of
 bookmarks, recommendation feedback, and the Cost Per Wear calculator. If
-storage is blocked, logging and undo still work for the current page visit.
+storage is blocked, changes still work for the current page visit.
 
 Bookmarks and wear entries update across open tabs on the same origin. Each
-bookmark and each outfit/date wear entry has its own storage key, so edits to
-different records can coexist. Conflicting edits to the same record use the
-last write. FitCheck still reads the earlier collection format and keeps
-per-record removals so deleted legacy entries stay deleted. Data is local to
-the browser and site origin.
+bookmark and each uniquely identified wear entry has its own storage key,
+so edits to different records can coexist. Conflicting edits to the same
+record use the last write. FitCheck reads both earlier wear formats and uses
+stable IDs so legacy entries can be edited or deleted individually. Data is
+local to the browser and site origin.
 
 ## Outfit feedback
 
