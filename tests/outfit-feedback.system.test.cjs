@@ -240,3 +240,90 @@ test('system: blocked storage keeps bookmarks usable for the current visit', asy
   assert.equal(await page.getByRole('button', { name: 'Explore outfits' }).isVisible(), true);
   assert.deepEqual(errors, []);
 });
+
+test('system: wear logging follows local dates and preserves bookmarks and recommendations', async (t) => {
+  const { page, errors, base } = await openFitCheck(t, {
+    locale: 'en-US', timezoneId: 'America/New_York', viewport: { width: 320, height: 700 },
+  });
+  const casual = `${base}/outfits.html?occasion=casual-weekend`;
+  const work = `${base}/outfits.html?occasion=work`;
+  const history = page.getByRole('link', { name: 'Wear History', exact: true });
+  const all = page.getByRole('link', { name: 'All Outfits', exact: true });
+  const rows = page.locator('#wear-history-list li');
+  const summary = page.locator('.outfit-card').filter({
+    has: page.getByRole('heading', { name: 'Everyday Casual', exact: true, level: 3 }),
+  }).locator('.wear-summary');
+  const worn = page.getByRole('button', { name: 'Worn today — Everyday Casual', exact: true });
+  const log = page.getByRole('button', { name: 'I wore this — Everyday Casual', exact: true });
+
+  // UTC is already November 23, but it is still November 22 in New York.
+  await page.clock.setFixedTime(new Date('2026-11-23T04:30:00Z'));
+  await page.goto(casual);
+  await history.click();
+  await page.getByText('No outfits worn yet. Log an outfit to start your wear history.').waitFor();
+  await page.getByRole('button', { name: 'Explore outfits' }).click();
+  await page.getByRole('heading', { name: 'Casual Weekend outfit ideas' }).waitFor();
+  await page.getByRole('button', { name: 'Save Everyday Casual' }).click();
+  await page.getByRole('button', { name: 'Thumbs down for Everyday Casual' }).click();
+  await log.click();
+  assert.equal(await worn.getAttribute('aria-disabled'), 'true');
+  // Exercise the duplicate guard even if a repeat click bypasses normal UI restrictions.
+  await worn.evaluate((button) => { button.click(); button.click(); });
+  assert.equal(await summary.innerText(), 'Worn 1 time · Last worn Nov 22, 2026');
+  await page.reload();
+  assert.equal(await worn.isVisible(), true);
+  assert.deepEqual(await page.locator('.outfit-grid .outfit-card:visible h3').allTextContents(),
+    ['Weekend Outing', 'Everyday Casual']);
+
+  await page.clock.setFixedTime(new Date('2026-11-23T05:30:00Z'));
+  await page.reload();
+  await log.click();
+  assert.equal(await summary.innerText(), 'Worn 2 times · Last worn Nov 23, 2026');
+  await page.goto(work);
+  await page.getByRole('button', { name: 'I wore this — Office Polish', exact: true }).click();
+  await history.click();
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  assert.deepEqual(await rows.locator('h2').allTextContents(), ['Office Polish', 'Everyday Casual', 'Everyday Casual']);
+  assert.deepEqual(await rows.locator('time').evaluateAll((dates) => dates.map((date) => date.dateTime)),
+    ['2026-11-23', '2026-11-23', '2026-11-22']);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+  await page.reload();
+  assert.equal(await rows.count(), 3);
+  await all.click();
+  await page.getByRole('heading', { name: 'Work outfit ideas' }).waitFor();
+  assert.equal(await page.getByRole('link', { name: 'Work', exact: true }).getAttribute('aria-current'), 'page');
+
+  await page.getByRole('link', { name: 'Saved (1)', exact: true }).click();
+  await page.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
+  await page.getByRole('button', { name: "Undo today's wear for Everyday Casual", exact: true }).click();
+  assert.equal(await log.isVisible(), true);
+  assert.equal(await summary.innerText(), 'Worn 1 time · Last worn Nov 22, 2026');
+  assert.equal(await page.getByRole('button', { name: 'Save Everyday Casual' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.getByRole('button', { name: 'Thumbs down for Everyday Casual' }).getAttribute('aria-pressed'), 'true');
+  await history.click();
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  await page.reload();
+  assert.deepEqual(await rows.locator('time').evaluateAll((dates) => dates.map((date) => date.dateTime)),
+    ['2026-11-23', '2026-11-22']);
+  assert.deepEqual(errors, []);
+});
+
+test('system: blocked storage supports wear logging and undo for the visit', async (t) => {
+  const { page, errors, base } = await openFitCheck(t);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      get() { throw new DOMException('Blocked', 'SecurityError'); },
+    });
+  });
+  await page.goto(`${base}/outfits.html`);
+  await page.getByRole('button', { name: 'I wore this — Everyday Casual' }).click();
+  assert.match(await page.locator('#wear-history-status').innerText(), /Browser storage is unavailable/);
+  await page.getByRole('link', { name: 'Wear History', exact: true }).click();
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  assert.deepEqual(await page.locator('#wear-history-list h2').allTextContents(), ['Everyday Casual']);
+  await page.getByRole('link', { name: 'All Outfits', exact: true }).click();
+  await page.getByRole('button', { name: "Undo today's wear for Everyday Casual" }).click();
+  await page.getByRole('link', { name: 'Wear History', exact: true }).click();
+  await page.getByText('No outfits worn yet. Log an outfit to start your wear history.').waitFor();
+  assert.deepEqual(errors, []);
+});

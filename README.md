@@ -40,6 +40,20 @@ page. Saving and unsaving are independent of Like and Dislike, and resetting
 recommendation preferences leaves bookmarks in place. If storage is blocked,
 you can still save outfits for the current page visit.
 
+## Wear history
+
+Select **I wore this** on an outfit in All Outfits or Saved. FitCheck records one
+wear per outfit per local calendar day. The card shows **Worn today**, the
+total number of logged wears, and the most recent wear date. Select **Undo**
+on that card to remove today's entry. The same outfit can be logged again on
+another day.
+
+Open **Wear History** to see entries across all occasions, newest dates first.
+Each entry uses the outfit's existing photos and shows the date it was worn.
+Wear history stays in this browser's localStorage and is independent of
+bookmarks, recommendation feedback, and the Cost Per Wear calculator. If
+storage is blocked, logging and undo still work for the current page visit.
+
 ## Outfit feedback
 
 Open `outfits.html` in your browser. Each outfit has Like (thumbs up) and Dislike

@@ -137,6 +137,47 @@
       margin: 4px;
     }
 
+    .wear-summary {
+      color: #806f60;
+      font-size: 12px;
+      margin: 8px 4px 4px;
+    }
+
+    .wear-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 4px;
+    }
+
+    .wear-actions [aria-disabled="true"] {
+      cursor: default;
+      background: #f0ebe5;
+    }
+
+    #wear-history-list {
+      display: grid;
+      gap: 12px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .wear-history-entry .outfit-images {
+      height: 92px;
+    }
+
+    .wear-history-entry h2 {
+      font-size: 24px;
+      margin: 8px 4px 2px;
+    }
+
+    .wear-history-entry time {
+      color: #806f60;
+      font-size: 12px;
+      margin: 0 4px;
+    }
+
     .saved-outfits-empty {
       background: #fff;
       border: 1px solid #eae3da;
@@ -154,7 +195,8 @@
     }
 
     #recommendation-status:empty,
-    #saved-outfits-status:empty {
+    #saved-outfits-status:empty,
+    #wear-history-status:empty {
       margin: 0;
     }
 
@@ -308,8 +350,10 @@
       <nav class="outfit-views" id="outfit-views" aria-label="Outfit views" hidden>
         <a class="feedback-button" id="view-all-outfits" href="#all-outfits">All Outfits</a>
         <a class="feedback-button" id="view-saved-outfits" href="#saved">Saved (0)</a>
+        <a class="feedback-button" id="view-wear-history" href="#wear-history">Wear History</a>
       </nav>
       <p class="intro" id="saved-outfits-status" role="status"></p>
+      <p class="intro" id="wear-history-status" role="status"></p>
       <nav class="occasion-filters" aria-label="Filter outfits by occasion">
         <a class="feedback-button" href="outfits.html" aria-current="page">Any occasion</a>
         <a class="feedback-button" href="?occasion=work">Work</a>
@@ -322,6 +366,14 @@
       <div class="saved-outfits-empty" id="saved-outfits-empty" hidden>
         <p class="intro">Your favorite looks, all in one place. Save outfits you love to revisit them later.</p>
         <button class="feedback-button" id="explore-outfits" type="button">Explore outfits</button>
+      </div>
+
+      <div id="wear-history-view" hidden>
+        <div class="saved-outfits-empty" id="wear-history-empty" hidden>
+          <p class="intro">No outfits worn yet. Log an outfit to start your wear history.</p>
+          <button class="feedback-button" id="explore-wear-outfits" type="button">Explore outfits</button>
+        </div>
+        <ol id="wear-history-list" aria-label="Wear entries"></ol>
       </div>
 
       <div class="outfit-grid">
@@ -491,6 +543,8 @@
   <script src="outfit-ranking.js"></script>
   <script src="outfit-recommendations.js"></script>
   <script src="saved-outfits-store.js"></script>
+  <script src="wear-history-store.js"></script>
+  <script src="wear-history.js"></script>
   <script src="saved-outfits.js"></script>
 </body>
 </html>

@@ -9,6 +9,9 @@
   const views = document.getElementById('outfit-views');
   const allLink = document.getElementById('view-all-outfits');
   const savedLink = document.getElementById('view-saved-outfits');
+  const historyLink = document.getElementById('view-wear-history');
+  const history = document.getElementById('wear-history-view');
+  const links = [allLink, savedLink, historyLink];
   const empty = document.getElementById('saved-outfits-empty');
   const explore = document.getElementById('explore-outfits');
   const status = document.getElementById('saved-outfits-status');
@@ -25,6 +28,7 @@
     return { card, button, id: feedback.dataset.outfitId, matchesOccasion: !card.hidden };
   });
   let saved = readSavedOutfits(new Set(outfits.map(({ id }) => id)));
+  const renderWearHistory = setupWearHistory(outfits);
 
   function showingSaved() {
     return window.location.hash === '#saved';
@@ -32,19 +36,24 @@
 
   function render() {
     const savedView = showingSaved();
-    main.dataset.outfitView = savedView ? 'saved' : 'all';
-    heading.textContent = savedView ? 'Saved outfits' : allHeading;
-    occasionFilters.hidden = savedView;
-    occasionEmpty.hidden = savedView || !allIsEmpty;
-    recommendationSettings.hidden = savedView;
+    const historyView = window.location.hash === '#wear-history';
+    const allView = !savedView && !historyView;
+    const currentLink = historyView ? historyLink : savedView ? savedLink : allLink;
+    main.dataset.outfitView = historyView ? 'history' : savedView ? 'saved' : 'all';
+    heading.textContent = historyView ? 'Wear History' : savedView ? 'Saved outfits' : allHeading;
+    occasionFilters.hidden = !allView;
+    occasionEmpty.hidden = !allView || !allIsEmpty;
+    recommendationSettings.hidden = !allView;
     empty.hidden = !savedView || saved.size > 0;
-    (savedView ? allLink : savedLink).removeAttribute('aria-current');
-    (savedView ? savedLink : allLink).setAttribute('aria-current', 'page');
+    history.hidden = !historyView;
+    if (historyView) renderWearHistory();
+    for (const link of links) link.removeAttribute('aria-current');
+    currentLink.setAttribute('aria-current', 'page');
     savedLink.textContent = `Saved (${saved.size})`;
 
     for (const { card, button, id, matchesOccasion } of outfits) {
       const isSaved = saved.has(id);
-      card.hidden = savedView ? !isSaved : !matchesOccasion;
+      card.hidden = historyView || (savedView ? !isSaved : !matchesOccasion);
       button.setAttribute('aria-pressed', String(isSaved));
       button.textContent = isSaved ? 'Saved' : 'Save';
     }
@@ -62,10 +71,12 @@
     });
   }
 
-  explore.addEventListener('click', () => {
-    allLink.click();
-    allLink.focus();
-  });
+  for (const exploreButton of [explore, document.getElementById('explore-wear-outfits')]) {
+    exploreButton.addEventListener('click', () => {
+      allLink.click();
+      allLink.focus();
+    });
+  }
   window.addEventListener('hashchange', render);
   views.hidden = false;
   render();
