@@ -1,0 +1,9 @@
+.profile-icon {
+  color: #29241f;
+  text-decoration: none;
+}
+
+.profile-icon:focus-visible {
+  outline: 3px solid #b66d4b;
+  outline-offset: 3px;
+}

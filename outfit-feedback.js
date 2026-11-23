@@ -3,21 +3,38 @@ function nextSelection(selected, reaction) {
   return selected === reaction ? null : reaction;
 }
 
-if (typeof module !== 'undefined') module.exports = { nextSelection };
+const outfitFeedbackPrefix = 'fitcheck:outfit-feedback:';
+
+function readOutfitFeedback(id, storage) {
+  try {
+    const saved = (storage ?? localStorage).getItem(outfitFeedbackPrefix + id);
+    return saved === 'up' || saved === 'down' ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearOutfitFeedback(storage) {
+  try {
+    const store = storage ?? localStorage;
+    const keys = Array.from({ length: store.length }, (_, index) => store.key(index));
+    keys.filter((key) => key?.startsWith(outfitFeedbackPrefix))
+      .forEach((key) => store.removeItem(key));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = { nextSelection, readOutfitFeedback, clearOutfitFeedback };
+}
 
 // Each outfit has a stable ID so its feedback stays separate, even if cards move.
 if (typeof document !== 'undefined') document.querySelectorAll('.outfit-feedback').forEach((group) => {
-  const storageKey = `fitcheck:outfit-feedback:${group.dataset.outfitId}`;
+  const storageKey = outfitFeedbackPrefix + group.dataset.outfitId;
   const buttons = group.querySelectorAll('[data-reaction]');
-  let selected = null;
-
-  try {
-    const saved = localStorage.getItem(storageKey);
-    // Ignore unexpected stored values instead of selecting an invalid reaction.
-    if (saved === 'up' || saved === 'down') selected = saved;
-  } catch {
-    // If browser storage is unavailable, feedback still works for this visit.
-  }
+  let selected = readOutfitFeedback(group.dataset.outfitId);
 
   function updateButtons() {
     // aria-pressed tells screen readers the selection and also controls the CSS.
@@ -27,6 +44,14 @@ if (typeof document !== 'undefined') document.querySelectorAll('.outfit-feedback
   }
 
   updateButtons();
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', ({ key }) => {
+      if (key !== null && key !== storageKey) return;
+      selected = readOutfitFeedback(group.dataset.outfitId);
+      updateButtons();
+    });
+  }
 
   buttons.forEach((button) => {
     button.addEventListener('click', () => {

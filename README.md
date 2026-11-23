@@ -1,6 +1,103 @@
 # Fitcheck
 A digital wardrobe app that helps users organize their clothes and plan outfits.
 
+## Outfit recommendations by occasion
+
+Open `index.html` and choose Work, Dinner Out, Date Night, Casual Weekend, or
+Party. Each card opens Outfit Ideas with two curated looks from the wardrobe.
+Use the occasion links above the outfits to switch, or choose **Any occasion**
+to clear the filter. The selected occasion is part of the URL, so refreshing
+keeps the same view. Like and Dislike selections follow an outfit across views.
+
+## Personalized outfit order
+
+FitCheck filters by occasion first and ranks those outfits when you open or
+refresh Outfit Ideas. A Like gives that outfit 3 points, and a Dislike takes
+away 3 points. Each shared piece adds 1 point if it appears in another liked
+outfit and subtracts 1 if it appears in another disliked outfit. Each piece
+counts once per reaction type, so the two effects cancel when both apply.
+An outfit's own reaction only contributes the direct 3-point change.
+Feedback from any occasion can inform the order when the outfits share pieces.
+
+Use the heart in any page header to open **Style profile**. Choose any styles and
+colors you like and, optionally, one dressing priority. Select **Save My
+Preferences** to keep your choices in this browser. FitCheck adds 0.25 points
+for a matching style, 0.25 for a matching color, and 0.25 for a matching
+priority. Each category contributes once even if several options match. The
+maximum boost is 0.75 points, so it can break a feedback tie while preserving
+any feedback lead of at least one point. Outfit ideas still filter by occasion
+first, and recommendations explain which saved choices or outfit feedback
+helped them score. Some color choices may have no match in the current
+curated catalog.
+
+Use **Reset Preferences** on your profile to clear your explicit choices.
+Likes, Dislikes, bookmarks, and wear history are kept separately. With no
+saved profile or unavailable browser storage, the profile adds no points.
+
+Higher scores appear first within the same context match count. Ties keep the
+original order, and positive scores on full context matches show
+**Recommended for you**. Voting updates or removes explanations immediately
+and leaves the current order in place until the next visit or refresh. With no context, relevant feedback, or style
+matches, outfits keep their original order. **Reset recommendation preferences** asks for confirmation,
+then clears all saved outfit Likes and Dislikes in this browser and reloads
+the current occasion. Preferences are kept in this browser's localStorage.
+
+## Refine your outfit
+
+Open **Refine your outfit** in All Outfits and optionally select a weather
+condition, dress code, setting, or activity level. **Both** asks for an outfit
+suited to indoor and outdoor settings. Choose **Apply context** to update the
+results. Set a choice back to **No preference** and apply to clear that choice,
+or use **Reset context** to clear all four and keep the occasion.
+
+FitCheck filters by occasion first, then ranks outfits by the number of
+selected criteria they match. Feedback and the style profile break ties at the
+same match count. Cards explain what they match and miss. If no outfit matches
+everything, FitCheck explains the gap and shows only the closest options
+within the occasion. If the occasion itself has no outfits, it shows the
+occasion empty state.
+
+Context stays in the current search URL, so refreshing or returning from
+Saved or Wear History keeps it. Picking another occasion starts a new search.
+Context never changes the saved style profile. Tags describe the existing
+curated outfits, so some combinations have no exact match. For example, the
+current looks include no outfits tagged Cold. Weather is selected manually.
+
+## Saved outfits
+
+Select **Save** on any outfit card to bookmark it. Select **Saved** at the top
+of Outfit Ideas to revisit all your bookmarks. The number beside **Saved**
+counts bookmarks across every occasion. Select **Saved** on a card again to
+remove that bookmark, or return to **All Outfits** to see your current occasion
+and personalized order. From an empty Saved view, **Explore outfits** brings
+you back to the same results.
+
+Bookmarks are stored in this browser's localStorage and survive reopening the
+page. Saving and unsaving are independent of Like and Dislike, and resetting
+recommendation preferences leaves bookmarks in place. If storage is blocked,
+you can still save outfits for the current page visit.
+
+## Wear history
+
+Select **I wore this** on an outfit in All Outfits or Saved. FitCheck records one
+wear per outfit per local calendar day. The card shows **Worn today**, the
+total number of logged wears, and the most recent wear date. Select **Undo**
+on that card to remove today's entry. The same outfit can be logged again on
+another day.
+
+Open **Wear History** to see entries across all occasions, newest dates first.
+Each entry uses the outfit's existing photos and shows the date it was worn.
+Wear history stays in this browser's localStorage and is independent of
+bookmarks, recommendation feedback, and the Cost Per Wear calculator. If
+storage is blocked, logging and undo still work for the current page visit.
+
+Bookmarks and wear entries update across open tabs on the same origin. Each
+bookmark and each outfit/date wear entry has its own storage key, so edits to
+different records can coexist. Conflicting edits to the same record use the
+last write. FitCheck still reads the earlier collection format and keeps
+per-record removals so deleted legacy entries stay deleted. Data is local to
+the browser and site origin.
+
 ## Outfit feedback
 
 Open `outfits.html` in your browser. Each outfit has Like (thumbs up) and Dislike
@@ -18,8 +115,10 @@ once with `npm install`. Then run all unit, integration, and browser tests with:
 node --test tests/*.test.cjs
 ```
 
-`npm test` is an alias for the same command. The system test uses Playwright with
-installed Chrome; set `PLAYWRIGHT_CHANNEL=msedge` to use installed Microsoft Edge.
+`npm test` is an alias for the same command. The browser tests use Playwright with
+installed Chrome by default. Set `PLAYWRIGHT_CHANNEL=msedge` to use installed
+Edge, or run `npx playwright install chromium` and set
+`PLAYWRIGHT_CHANNEL=chromium` to use Playwright's Chromium.
 It starts and stops its own HTTP server and uses a fresh browser context each run.
 The unit and integration tests use Node's built-in test runner. Existing regression
 tests still cover clearing, independent outfits, invalid saved values, and blocked
@@ -28,17 +127,13 @@ storage. Use the manual checks below for broader layout and keyboard behavior.
 ### GitHub Actions
 
 The workflow in `.github/workflows/test.yml` runs on every push and pull request.
-It checks out the repository, installs Node.js 24, and runs the isolated unit test
-with the same command used locally:
+It installs Node.js 24, the npm dependencies, and Playwright Chromium with
+its system dependencies before running `npm test`. This covers the unit,
+integration, and browser tests. The browser tests serve the app locally and
+block external font requests, so CI needs no FitCheck credentials or API keys.
 
-```sh
-node --test tests/outfit-feedback.unit.test.cjs
-```
-
-This unit test needs no package installation, browser, keys, or secrets. The full
-suite command above also includes integration and Playwright tests. To see CI
-results, open the repository's **Actions** tab, choose **Unit tests**, select a run,
-then open **unit-tests** and expand **Run unit tests** for the output.
+To see CI results, open the repository's **Actions** tab, choose **FitCheck
+tests**, and open the **full-suite** job.
 
 ### Assignment: three test levels
 
