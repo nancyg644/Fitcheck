@@ -100,6 +100,25 @@
 
     /* Outfit cards */
 
+    .occasion-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .occasion-filters a {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    .occasion-filters a[aria-current="page"] {
+      background: #29241f;
+      border-color: #29241f;
+      color: #faf8f5;
+    }
+
     .outfit-grid {
       display: flex;
       flex-direction: column;
@@ -247,10 +266,20 @@
         you already own.
       </p>
 
+      <nav class="occasion-filters" aria-label="Filter outfits by occasion">
+        <a class="feedback-button" href="outfits.html" aria-current="page">All outfits</a>
+        <a class="feedback-button" href="?occasion=work">Work</a>
+        <a class="feedback-button" href="?occasion=dinner-out">Dinner Out</a>
+        <a class="feedback-button" href="?occasion=date-night">Date Night</a>
+        <a class="feedback-button" href="?occasion=casual-weekend">Casual Weekend</a>
+        <a class="feedback-button" href="?occasion=party">Party</a>
+      </nav>
+      <p class="intro" id="occasion-empty" hidden>No outfits match this occasion. Choose another occasion or select All outfits.</p>
+
       <div class="outfit-grid">
 
         <!-- Outfit 1: Everyday Casual -->
-        <div class="outfit-card">
+        <div class="outfit-card" data-occasions="casual-weekend">
 
           <div class="outfit-images">
             <img src="images/white-tshirt.jpg" alt="White T-Shirt">
@@ -273,7 +302,7 @@
         </div>
 
         <!-- Outfit 2: Smart Casual -->
-        <div class="outfit-card">
+        <div class="outfit-card" data-occasions="work dinner-out">
 
           <div class="outfit-images">
             <img src="images/pink-blouse.jpg" alt="Pink Blouse">
@@ -296,7 +325,7 @@
         </div>
 
         <!-- Outfit 3: Weekend Outing -->
-        <div class="outfit-card">
+        <div class="outfit-card" data-occasions="casual-weekend">
 
           <div class="outfit-images two-items">
             <img src="images/black-dress.jpg" alt="Black Dress">
@@ -314,6 +343,70 @@
           <div class="outfit-feedback" data-outfit-id="weekend-outing" role="group" aria-label="Feedback for Weekend Outing">
             <button class="feedback-button" type="button" data-reaction="up" aria-label="Thumbs up for Weekend Outing" aria-pressed="false"><span aria-hidden="true">👍</span> Like</button>
             <button class="feedback-button" type="button" data-reaction="down" aria-label="Thumbs down for Weekend Outing" aria-pressed="false"><span aria-hidden="true">👎</span> Dislike</button>
+          </div>
+        </div>
+
+        <div class="outfit-card" data-occasions="work">
+          <div class="outfit-images">
+            <img src="images/ivory-silk-blouse.jpg" alt="Ivory Silk Blouse" loading="lazy">
+            <img src="images/charcoal-pleated-trousers.jpg" alt="Charcoal Pleated Trousers" loading="lazy">
+            <img src="images/black-leather-loafers.jpg" alt="Black Leather Loafers" loading="lazy">
+          </div>
+
+          <h3>Office Polish</h3>
+          <p class="outfit-description">An ivory blouse, pleated trousers, and loafers make a polished workday outfit.</p>
+          <p class="occasion">WORK</p>
+          <div class="outfit-feedback" data-outfit-id="office-polish" role="group" aria-label="Feedback for Office Polish">
+            <button class="feedback-button" type="button" data-reaction="up" aria-label="Thumbs up for Office Polish" aria-pressed="false"><span aria-hidden="true">👍</span> Like</button>
+            <button class="feedback-button" type="button" data-reaction="down" aria-label="Thumbs down for Office Polish" aria-pressed="false"><span aria-hidden="true">👎</span> Dislike</button>
+          </div>
+        </div>
+
+        <div class="outfit-card" data-occasions="dinner-out date-night">
+          <div class="outfit-images">
+            <img src="images/black-satin-halter-top.jpg" alt="Black Satin Halter Top" loading="lazy">
+            <img src="images/champagne-satin-midi-skirt.jpg" alt="Champagne Satin Midi Skirt" loading="lazy">
+            <img src="images/blush-ballet-flats.jpg" alt="Blush Ballet Flats" loading="lazy">
+          </div>
+
+          <h3>Satin After Dark</h3>
+          <p class="outfit-description">Pair a black satin halter with a champagne midi skirt and blush flats for an evening out.</p>
+          <p class="occasion">DINNER OUT · DATE NIGHT</p>
+          <div class="outfit-feedback" data-outfit-id="satin-after-dark" role="group" aria-label="Feedback for Satin After Dark">
+            <button class="feedback-button" type="button" data-reaction="up" aria-label="Thumbs up for Satin After Dark" aria-pressed="false"><span aria-hidden="true">👍</span> Like</button>
+            <button class="feedback-button" type="button" data-reaction="down" aria-label="Thumbs down for Satin After Dark" aria-pressed="false"><span aria-hidden="true">👎</span> Dislike</button>
+          </div>
+        </div>
+
+        <div class="outfit-card" data-occasions="date-night party">
+          <div class="outfit-images">
+            <img src="images/burgundy-satin-cocktail-dress.jpg" alt="Burgundy Satin Cocktail Dress" loading="lazy">
+            <img src="images/pearl-drop-earrings.jpg" alt="Pearl Drop Earrings" loading="lazy">
+            <img src="images/silver-strappy-heels.jpg" alt="Silver Strappy Heels" loading="lazy">
+          </div>
+
+          <h3>Burgundy Evening</h3>
+          <p class="outfit-description">A burgundy cocktail dress, pearl earrings, and silver heels make an easy evening combination.</p>
+          <p class="occasion">DATE NIGHT · PARTY</p>
+          <div class="outfit-feedback" data-outfit-id="burgundy-evening" role="group" aria-label="Feedback for Burgundy Evening">
+            <button class="feedback-button" type="button" data-reaction="up" aria-label="Thumbs up for Burgundy Evening" aria-pressed="false"><span aria-hidden="true">👍</span> Like</button>
+            <button class="feedback-button" type="button" data-reaction="down" aria-label="Thumbs down for Burgundy Evening" aria-pressed="false"><span aria-hidden="true">👎</span> Dislike</button>
+          </div>
+        </div>
+
+        <div class="outfit-card" data-occasions="party">
+          <div class="outfit-images">
+            <img src="images/silver-sequin-top.jpg" alt="Silver Sequin Top" loading="lazy">
+            <img src="images/black-tuxedo-trousers.jpg" alt="Black Tuxedo Trousers" loading="lazy">
+            <img src="images/silver-evening-clutch.jpg" alt="Silver Evening Clutch" loading="lazy">
+          </div>
+
+          <h3>Silver Spotlight</h3>
+          <p class="outfit-description">A silver sequin top and evening clutch bring sparkle to black tuxedo trousers.</p>
+          <p class="occasion">PARTY</p>
+          <div class="outfit-feedback" data-outfit-id="silver-spotlight" role="group" aria-label="Feedback for Silver Spotlight">
+            <button class="feedback-button" type="button" data-reaction="up" aria-label="Thumbs up for Silver Spotlight" aria-pressed="false"><span aria-hidden="true">👍</span> Like</button>
+            <button class="feedback-button" type="button" data-reaction="down" aria-label="Thumbs down for Silver Spotlight" aria-pressed="false"><span aria-hidden="true">👎</span> Dislike</button>
           </div>
         </div>
 
@@ -341,6 +434,7 @@
     </nav>
 
   </div>
+  <script src="outfit-occasions.js"></script>
   <script src="outfit-feedback.js"></script>
 </body>
 </html>

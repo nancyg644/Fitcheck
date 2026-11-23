@@ -120,6 +120,16 @@
 
     /* Square icon background */
 
+    .occasion-grid .occasion-card {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .occasion-grid .occasion-card:focus-visible {
+      outline: 3px solid #b66d4b;
+      outline-offset: 3px;
+    }
+
     .occasion-icon {
       width: 46px;
       height: 46px;
@@ -275,7 +285,7 @@
       <div class="occasion-grid">
 
         <!-- Work -->
-        <div class="occasion-card">
+        <a class="occasion-card" href="outfits.html?occasion=work">
           <span class="occasion-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <rect x="3" y="7" width="18" height="14" rx="2"/>
@@ -288,10 +298,10 @@
             <p>Polished looks for your 9-to-5</p>
           </div>
           <span class="occasion-arrow" aria-hidden="true">›</span>
-        </div>
+        </a>
 
         <!-- Dinner Out -->
-        <div class="occasion-card">
+        <a class="occasion-card" href="outfits.html?occasion=dinner-out">
           <span class="occasion-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 3v7a3 3 0 0 0 6 0V3"/>
@@ -304,10 +314,10 @@
             <p>Effortlessly put-together</p>
           </div>
           <span class="occasion-arrow" aria-hidden="true">›</span>
-        </div>
+        </a>
 
         <!-- Date Night -->
-        <div class="occasion-card">
+        <a class="occasion-card" href="outfits.html?occasion=date-night">
           <span class="occasion-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/>
@@ -318,10 +328,10 @@
             <p>Something a little special</p>
           </div>
           <span class="occasion-arrow" aria-hidden="true">›</span>
-        </div>
+        </a>
 
         <!-- Casual Weekend -->
-        <div class="occasion-card">
+        <a class="occasion-card" href="outfits.html?occasion=casual-weekend">
           <span class="occasion-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M4 8h13v7a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8z"/>
@@ -334,10 +344,10 @@
             <p>Relaxed and comfortable</p>
           </div>
           <span class="occasion-arrow" aria-hidden="true">›</span>
-        </div>
+        </a>
 
         <!-- Party -->
-        <div class="occasion-card">
+        <a class="occasion-card" href="outfits.html?occasion=party">
           <span class="occasion-icon">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2z"/>
@@ -348,7 +358,7 @@
             <p>Make an entrance</p>
           </div>
           <span class="occasion-arrow" aria-hidden="true">›</span>
-        </div>
+        </a>
 
       </div>
 

@@ -48,8 +48,7 @@ test('integration: Like, switch to Dislike, and restore saved selection on page 
 test('every existing outfit has two labeled, initially unselected buttons', () => {
   const groups = loadPage();
   assert.equal(groups.length, (html.match(/class="outfit-card"/g) || []).length);
-  assert.equal(groups.length, 3);
-  assert.equal(new Set(groups.map((group) => group.dataset.outfitId)).size, 3);
+  assert.equal(new Set(groups.map((group) => group.dataset.outfitId)).size, groups.length);
   assert.match(html, /<script src="outfit-feedback.js"><\/script>/);
   groups.forEach((group) => {
     assert.deepEqual(group.buttons.map((button) => button.dataset.reaction), ['up', 'down']);
@@ -97,7 +96,9 @@ test('outfits keep independent feedback through changes and refreshes', () => {
   groups[1].buttons[1].click();
   groups[2].buttons[0].click();
   groups[0].buttons[0].click();
-  assert.deepEqual(loadPage(saved).map(states), [['false', 'false'], ['false', 'true'], ['true', 'false']]);
+  const restored = loadPage(saved);
+  assert.deepEqual(restored.slice(0, 3).map(states), [['false', 'false'], ['false', 'true'], ['true', 'false']]);
+  restored.slice(3).forEach((group) => assert.deepEqual(states(group), ['false', 'false']));
 });
 
 test('unexpected saved values are ignored', () => {

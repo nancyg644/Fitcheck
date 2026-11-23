@@ -1,6 +1,14 @@
 # Fitcheck
 A digital wardrobe app that helps users organize their clothes and plan outfits.
 
+## Outfit recommendations by occasion
+
+Open `index.html` and choose Work, Dinner Out, Date Night, Casual Weekend, or
+Party. Each card opens Outfit Ideas with two curated looks from the wardrobe.
+Use the occasion links above the outfits to switch, or choose **All outfits**
+to clear the filter. The selected occasion is part of the URL, so refreshing
+keeps the same view. Like and Dislike selections follow an outfit across views.
+
 ## Outfit feedback
 
 Open `outfits.html` in your browser. Each outfit has Like (thumbs up) and Dislike
