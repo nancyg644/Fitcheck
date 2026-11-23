@@ -17,7 +17,7 @@ async function openFitCheck(t, options) {
     }
     try {
       const body = await fs.readFile(file);
-      const types = { '.html': 'text/html', '.js': 'text/javascript', '.jpg': 'image/jpeg' };
+      const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.jpg': 'image/jpeg' };
       res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream' });
       res.end(body);
     } catch {
@@ -25,9 +25,15 @@ async function openFitCheck(t, options) {
     }
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
-  t.after(() => new Promise((resolve) => server.close(resolve)));
-  const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || 'chrome' });
-  t.after(() => browser.close());
+  let browser;
+  t.after(async () => {
+    try {
+      await browser?.close();
+    } finally {
+      await new Promise((resolve) => server.close(resolve));
+    }
+  });
+  browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL || 'chrome' });
   const context = await browser.newContext(options);
   const page = await context.newPage();
   // External fonts are irrelevant to feedback; keep the test independent of Google.
@@ -325,5 +331,77 @@ test('system: blocked storage supports wear logging and undo for the visit', asy
   await page.getByRole('button', { name: "Undo today's wear for Everyday Casual" }).click();
   await page.getByRole('link', { name: 'Wear History', exact: true }).click();
   await page.getByText('No outfits worn yet. Log an outfit to start your wear history.').waitFor();
+  assert.deepEqual(errors, []);
+});
+
+test('system: profile links, multiple choices, ranking explanations, and isolated reset', async (t) => {
+  const { page, base, errors } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const profile = `${base}/profile.html`;
+  const work = `${base}/outfits.html?occasion=work`;
+  const profileLink = page.getByRole('link', { name: 'Style profile', exact: true });
+  const titles = () => page.locator('.outfit-grid .outfit-card:visible h3').allTextContents();
+  for (const file of ['index.html', 'outfits.html', 'wardrobe.html', 'cost-per-wear.html']) {
+    await page.goto(`${base}/${file}`);
+    await profileLink.click();
+    await page.waitForURL(profile, { waitUntil: 'load' });
+    assert.equal(await page.getByRole('heading', { name: 'Your style profile' }).isVisible(), true);
+  }
+  assert.equal(await profileLink.getAttribute('aria-current'), 'page');
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+  assert.equal(await page.getByRole('checkbox').count(), 11);
+  assert.equal(await page.getByRole('radio').count(), 3);
+  const preferences = ['Minimalist', 'Bold', 'Neutrals', 'Pastels'];
+  for (const name of preferences) await page.getByRole('checkbox', { name, exact: true }).check();
+  await page.getByRole('radio', { name: 'Comfort first', exact: true }).check();
+  await page.getByRole('radio', { name: 'Balanced', exact: true }).check();
+  assert.equal(await page.getByRole('radio', { name: 'Comfort first', exact: true }).isChecked(), false);
+  await page.getByRole('button', { name: 'Save My Preferences', exact: true }).click();
+  assert.equal(await page.getByRole('status').innerText(), 'Style preferences saved.');
+  await page.reload();
+  for (const name of preferences) assert.equal(await page.getByRole('checkbox', { name, exact: true }).isChecked(), true);
+  assert.equal(await page.getByRole('radio', { name: 'Balanced', exact: true }).isChecked(), true);
+
+  await page.goto(work);
+  assert.deepEqual(await titles(), ['Office Polish', 'Smart Casual']);
+  assert.equal(await page.getByText('Matches your preferences for minimalist styles, neutral colors, and balanced outfits.', { exact: true }).isVisible(), true);
+  assert.equal(await page.getByText('Matches your preferences for pastels and balanced outfits.', { exact: true }).isVisible(), true);
+  await page.getByRole('button', { name: 'Thumbs up for Smart Casual', exact: true }).click();
+  await page.getByRole('button', { name: 'Save Office Polish', exact: true }).click();
+  await page.getByRole('button', { name: 'I wore this — Office Polish', exact: true }).click();
+  await page.reload();
+  assert.deepEqual(await titles(), ['Smart Casual', 'Office Polish']);
+
+  await profileLink.click();
+  await page.waitForURL(profile, { waitUntil: 'load' });
+  await page.getByRole('button', { name: 'Reset Preferences', exact: true }).click();
+  assert.equal(await page.getByRole('status').innerText(), 'Style preferences reset.');
+  await page.reload();
+  assert.equal(await page.locator('#style-profile input:checked').count(), 0);
+  await page.goto(work);
+  assert.deepEqual(await titles(), ['Smart Casual', 'Office Polish']);
+  assert.equal(await page.getByText('You liked this outfit.', { exact: true }).isVisible(), true);
+  assert.equal(await page.getByText(/Matches your preferences/).count(), 0);
+  assert.equal(await page.getByRole('button', { name: 'Thumbs up for Smart Casual', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.getByRole('link', { name: 'Saved (1)', exact: true }).isVisible(), true);
+  await page.getByRole('link', { name: 'Wear History', exact: true }).click();
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  assert.deepEqual(await page.locator('#wear-history-list h2').allTextContents(), ['Office Polish']);
+  assert.deepEqual(errors, []);
+});
+
+test('system: a blocked style profile leaves outfit recommendations available', async (t) => {
+  const { page, base, errors } = await openFitCheck(t);
+  await page.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', {
+      get() { throw new DOMException('Blocked', 'SecurityError'); },
+    });
+  });
+  await page.goto(`${base}/profile.html`);
+  await page.getByRole('checkbox', { name: 'Classic', exact: true }).check();
+  await page.getByRole('button', { name: 'Save My Preferences', exact: true }).click();
+  assert.match(await page.getByRole('status').innerText(), /could not be saved/);
+  await page.goto(`${base}/outfits.html?occasion=work`);
+  assert.deepEqual(await page.locator('.outfit-grid .outfit-card:visible h3').allTextContents(), ['Smart Casual', 'Office Polish']);
+  assert.equal(await page.getByText('Recommended for you', { exact: true }).count(), 0);
   assert.deepEqual(errors, []);
 });

@@ -19,10 +19,25 @@ counts once per reaction type, so the two effects cancel when both apply.
 An outfit's own reaction only contributes the direct 3-point change.
 Feedback from any occasion can inform the order when the outfits share pieces.
 
+Use the heart in any page header to open **Style profile**. Choose any styles and
+colors you like and, optionally, one dressing priority. Select **Save My
+Preferences** to keep your choices in this browser. FitCheck adds 0.25 points
+for a matching style, 0.25 for a matching color, and 0.25 for a matching
+priority. Each category contributes once even if several options match. The
+maximum boost is 0.75 points, so it can break a feedback tie while preserving
+any feedback lead of at least one point. Outfit ideas still filter by occasion
+first, and recommendations explain which saved choices or outfit feedback
+helped them score. Some color choices may have no match in the current
+curated catalog.
+
+Use **Reset Preferences** on your profile to clear your explicit choices.
+Likes, Dislikes, bookmarks, and wear history are kept separately. With no
+saved profile or unavailable browser storage, the profile adds no points.
+
 Higher scores appear first. Ties keep the original order, and positive scores
 show **Recommended for you**. Voting leaves the current order in place until
-the next visit or refresh. With no relevant feedback, outfits keep their
-original order. **Reset recommendation preferences** asks for confirmation,
+the next visit or refresh. With no relevant feedback or style matches, outfits
+keep their original order. **Reset recommendation preferences** asks for confirmation,
 then clears all saved outfit Likes and Dislikes in this browser and reloads
 the current occasion. Preferences are kept in this browser's localStorage.
 
