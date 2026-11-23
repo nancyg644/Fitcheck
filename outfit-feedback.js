@@ -45,6 +45,14 @@ if (typeof document !== 'undefined') document.querySelectorAll('.outfit-feedback
 
   updateButtons();
 
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', ({ key }) => {
+      if (key !== null && key !== storageKey) return;
+      selected = readOutfitFeedback(group.dataset.outfitId);
+      updateButtons();
+    });
+  }
+
   buttons.forEach((button) => {
     button.addEventListener('click', () => {
       // Clicking the same reaction clears it; another reaction replaces it.

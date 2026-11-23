@@ -1,15 +1,18 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  readSavedOutfits, toggleSavedOutfit, writeSavedOutfits,
+  readSavedOutfits, writeSavedOutfit,
 } = require('../saved-outfits-store.js');
 
-test('saved selection toggles by outfit ID without mutating the original set', () => {
-  const initial = new Set(['everyday-casual']);
-  const saved = toggleSavedOutfit(initial, 'office-polish');
-  assert.deepEqual([...initial], ['everyday-casual']);
-  assert.deepEqual([...saved], ['everyday-casual', 'office-polish']);
-  assert.deepEqual([...toggleSavedOutfit(saved, 'everyday-casual')], ['office-polish']);
+test('bookmark writes change only the selected ID and can remove legacy bookmarks', () => {
+  const data = new Map([['fitcheck:saved-outfits', '["everyday-casual"]']]);
+  const storage = { getItem: (key) => data.get(key), setItem: (key, value) => data.set(key, value) };
+  const known = new Set(['everyday-casual', 'office-polish']);
+  assert.equal(writeSavedOutfit('office-polish', true, storage), true);
+  assert.deepEqual([...readSavedOutfits(known, storage)], ['everyday-casual', 'office-polish']);
+  assert.equal(writeSavedOutfit('everyday-casual', false, storage), true);
+  assert.deepEqual([...readSavedOutfits(known, storage)], ['office-polish']);
+  assert.equal(data.get('fitcheck:saved-outfits'), '["everyday-casual"]');
 });
 
 test('saved data ignores malformed values, unknown IDs, and duplicates', () => {
@@ -21,12 +24,11 @@ test('saved data ignores malformed values, unknown IDs, and duplicates', () => {
   assert.deepEqual([...readSavedOutfits(known, mixed)], ['everyday-casual']);
 });
 
-test('unavailable storage leaves saving usable in memory', () => {
+test('unavailable storage reports a failed bookmark write', () => {
   const blocked = {
     getItem() { throw new Error('Blocked'); },
     setItem() { throw new Error('Blocked'); },
   };
-  const saved = toggleSavedOutfit(readSavedOutfits(new Set(['office-polish']), blocked), 'office-polish');
-  assert.equal(writeSavedOutfits(saved, blocked), false);
-  assert.deepEqual([...saved], ['office-polish']);
+  assert.equal(writeSavedOutfit('office-polish', true, blocked), false);
+  assert.deepEqual([...readSavedOutfits(new Set(['office-polish']), blocked)], []);
 });

@@ -37,8 +37,8 @@ async function openFitCheck(t, options) {
   const context = await browser.newContext(options);
   const page = await context.newPage();
   // External fonts are irrelevant to feedback; keep the test independent of Google.
-  await page.route('https://fonts.googleapis.com/**', (route) => route.abort());
-  await page.route('https://fonts.gstatic.com/**', (route) => route.abort());
+  await context.route('https://fonts.googleapis.com/**', (route) => route.abort());
+  await context.route('https://fonts.gstatic.com/**', (route) => route.abort());
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   return { page, errors, base: `http://127.0.0.1:${server.address().port}` };
@@ -404,4 +404,202 @@ test('system: a blocked style profile leaves outfit recommendations available', 
   assert.deepEqual(await page.locator('.outfit-grid .outfit-card:visible h3').allTextContents(), ['Smart Casual', 'Office Polish']);
   assert.equal(await page.getByText('Recommended for you', { exact: true }).count(), 0);
   assert.deepEqual(errors, []);
+});
+
+test('system: contextual results outrank preferences and explain the closest fallbacks', async (t) => {
+  const { page, base, errors } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const weekend = `${base}/outfits.html?occasion=casual-weekend`;
+  const refine = page.locator('#refine-outfit');
+  const titles = () => page.locator('.outfit-grid .outfit-card:visible h3').allTextContents();
+  const fallback = page.getByText('No outfits match all your selections.', { exact: false });
+  const apply = async (url) => {
+    await page.getByRole('button', { name: 'Apply context' }).click();
+    await page.waitForURL(url, { waitUntil: 'load' });
+  };
+  await page.goto(weekend);
+  const profile = JSON.stringify({ styles: ['classic'], colors: ['neutrals'], priority: 'comfort-first' });
+  await page.evaluate((profile) => localStorage.setItem('fitcheck:style-preferences', profile), profile);
+  await page.getByRole('button', { name: 'Thumbs up for Everyday Casual' }).click();
+  await page.getByRole('button', { name: 'Save Everyday Casual' }).click();
+  await page.getByRole('button', { name: 'I wore this — Everyday Casual' }).click();
+  await page.reload();
+  assert.deepEqual(await titles(), ['Everyday Casual', 'Weekend Outing']);
+  assert.equal(await refine.getAttribute('open'), null);
+  await page.getByText('Refine your outfit', { exact: true }).click();
+  await page.getByLabel('Weather').selectOption('hot');
+  await apply(`${weekend}&weather=hot`);
+  assert.deepEqual(await titles(), ['Weekend Outing', 'Everyday Casual']);
+  assert.equal(await page.getByText('Matches hot weather.', { exact: true }).isVisible(), true);
+  assert.equal(await page.getByText('Doesn’t match hot weather.', { exact: true }).isVisible(), true);
+  assert.equal(await fallback.isVisible(), false);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+
+  await page.getByLabel('Dress code').selectOption('dressy');
+  await page.getByLabel('Setting').selectOption('both');
+  await page.getByLabel('Activity level').selectOption('walking');
+  await apply(`${weekend}&weather=hot&dress-code=dressy&setting=both&activity=walking`);
+  assert.deepEqual(await titles(), ['Weekend Outing']);
+  assert.equal(await fallback.isVisible(), true);
+  assert.equal(await page.getByText(/Matches hot weather.*indoor and outdoor settings.*lots of walking.*Doesn’t match a dressy dress code/).isVisible(), true);
+
+  await page.getByRole('link', { name: 'Saved (1)', exact: true }).click();
+  await page.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
+  assert.deepEqual(await titles(), ['Everyday Casual']);
+  assert.equal(await refine.isVisible(), false);
+  assert.equal(await fallback.isVisible(), false);
+  await page.getByRole('link', { name: 'Wear History', exact: true }).click();
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  assert.deepEqual(await page.locator('#wear-history-list h2').allTextContents(), ['Everyday Casual']);
+  await page.getByRole('link', { name: 'All Outfits', exact: true }).click();
+  await page.getByRole('heading', { name: 'Casual Weekend outfit ideas', exact: true }).waitFor();
+  assert.deepEqual(await titles(), ['Weekend Outing']);
+  assert.equal(await page.getByLabel('Dress code').inputValue(), 'dressy');
+
+  await page.getByLabel('Dress code').selectOption({ label: 'No preference' });
+  await apply(`${weekend}&weather=hot&setting=both&activity=walking`);
+  assert.deepEqual(await titles(), ['Weekend Outing', 'Everyday Casual']);
+  assert.equal(await fallback.isVisible(), false);
+  await page.getByRole('link', { name: 'Reset context', exact: true }).click();
+  await page.waitForURL(weekend, { waitUntil: 'load' });
+  assert.deepEqual(await titles(), ['Everyday Casual', 'Weekend Outing']);
+  assert.equal(await refine.getAttribute('open'), null);
+  assert.equal(await page.getByRole('button', { name: 'Thumbs up for Everyday Casual' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.evaluate(() => localStorage.getItem('fitcheck:style-preferences')), profile);
+  assert.deepEqual(errors, []);
+});
+
+test('system: invalid context is ignored and an unknown occasion stays empty', async (t) => {
+  const { page, base, errors } = await openFitCheck(t);
+  await page.goto(`${base}/outfits.html?occasion=work&weather=freezing&activity=unknown`);
+  assert.deepEqual(await page.locator('.outfit-grid .outfit-card:visible h3').allTextContents(), ['Smart Casual', 'Office Polish']);
+  assert.equal(await page.locator('.context-explanation').count(), 0);
+  await page.goto(`${base}/outfits.html?occasion=unknown&weather=warm`);
+  assert.equal(await page.locator('#occasion-empty').isVisible(), true);
+  assert.equal(await page.locator('#context-fallback').isVisible(), false);
+  assert.equal(await page.locator('.outfit-grid .outfit-card:visible').count(), 0);
+
+  await page.goto(`${base}/cost-per-wear.html`);
+  await page.getByLabel('Purchase price ($)').fill('20');
+  await page.getByLabel('Number of times worn').fill('4');
+  await page.getByRole('button', { name: 'Calculate', exact: true }).click();
+  assert.equal(await page.locator('#result-amount').innerText(), '$5.00');
+  assert.deepEqual(errors, []);
+});
+
+test('system: two tabs preserve independent bookmarks and wears and reflect removals', async (t) => {
+  const { page: first, base, errors } = await openFitCheck(t);
+  const second = await first.context().newPage();
+  second.on('pageerror', (error) => errors.push(error.message));
+  const url = `${base}/outfits.html`;
+  await Promise.all([first.goto(url), second.goto(url)]);
+  const button = (page, name) => page.getByRole('button', { name, exact: true });
+  const link = (page, name) => page.getByRole('link', { name, exact: true });
+  await Promise.all([
+    button(first, 'Save Everyday Casual').click(),
+    button(second, 'Save Office Polish').click(),
+  ]);
+  for (const page of [first, second]) await link(page, 'Saved (2)').waitFor();
+  await Promise.all([
+    button(first, 'I wore this — Everyday Casual').click(),
+    button(second, 'I wore this — Office Polish').click(),
+  ]);
+  await button(first, 'Worn today — Office Polish').waitFor();
+  await button(second, 'Worn today — Everyday Casual').waitFor();
+  await link(second, 'Wear History').click();
+  await second.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  assert.deepEqual((await second.locator('#wear-history-list h2').allTextContents()).sort(),
+    ['Everyday Casual', 'Office Polish']);
+
+  await button(first, 'Save Everyday Casual').click();
+  await button(first, "Undo today's wear for Everyday Casual").click();
+  await link(second, 'Saved (1)').waitFor();
+  await second.locator('#wear-history-list').getByRole('heading', { name: 'Everyday Casual' }).waitFor({ state: 'hidden' });
+  assert.deepEqual(await second.locator('#wear-history-list h2').allTextContents(), ['Office Polish']);
+  await second.reload();
+  assert.deepEqual(await second.locator('#wear-history-list h2').allTextContents(), ['Office Polish']);
+  await link(second, 'Saved (1)').click();
+  await second.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
+  assert.deepEqual(await second.locator('.outfit-grid .outfit-card:visible h3').allTextContents(), ['Office Polish']);
+  assert.deepEqual(errors, []);
+});
+
+test('system: feedback explanations follow switches and clears without rearranging cards', async (t) => {
+  const { page, base } = await openFitCheck(t);
+  await page.goto(`${base}/outfits.html?occasion=casual-weekend`);
+  const card = (name) => page.locator('.outfit-grid .outfit-card').filter({
+    has: page.getByRole('heading', { name, exact: true }),
+  });
+  const titles = () => page.locator('.outfit-grid .outfit-card:visible h3').allTextContents();
+  const like = page.getByRole('button', { name: 'Thumbs up for Weekend Outing', exact: true });
+  const dislike = page.getByRole('button', { name: 'Thumbs down for Weekend Outing', exact: true });
+  await like.click();
+  await page.reload();
+  const original = await titles();
+  assert.deepEqual(original, ['Weekend Outing', 'Everyday Casual']);
+  assert.equal(await card('Weekend Outing').getByText('You liked this outfit.', { exact: true }).isVisible(), true);
+  assert.equal(await card('Everyday Casual').getByText('Shares pieces with outfits you liked.', { exact: true }).isVisible(), true);
+  await dislike.click();
+  assert.equal(await page.locator('.recommendation-explanation').count(), 0);
+  assert.deepEqual(await titles(), original);
+  await like.click();
+  assert.equal(await page.getByText('You liked this outfit.', { exact: true }).isVisible(), true);
+  await like.click();
+  assert.equal(await page.locator('.recommendation-explanation').count(), 0);
+  assert.deepEqual(await titles(), original);
+});
+
+test('system: sticky navigation leaves keyboard focus visible at 320 pixels', async (t) => {
+  const { page, base } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const cases = [
+    ['/index.html', ['.occasion-grid a']],
+    ['/outfits.html?occasion=casual-weekend&weather=hot', ['#refine-outfit summary', '#refine-outfit select', '#refine-outfit button']],
+    ['/cost-per-wear.html', ['#purchase-price', '#times-worn', '#cost-form button']],
+  ];
+  for (const [path, selectors] of cases) {
+    await page.goto(base + path);
+    const targets = selectors.join(',');
+    const total = await page.locator(targets).count();
+    let checked = 0;
+    for (let step = 0; step < 100 && checked < total; step++) {
+      await page.keyboard.press('Tab');
+      const bounds = await page.evaluate(async (targets) => {
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const focused = document.activeElement;
+        if (!focused.matches(targets)) return null;
+        const rect = focused.getBoundingClientRect();
+        return {
+          name: focused.name || focused.textContent.trim(),
+          top: rect.top, bottom: rect.bottom, navTop: document.querySelector('.bottom-nav').getBoundingClientRect().top,
+          outline: getComputedStyle(focused).outlineStyle,
+        };
+      }, targets);
+      if (!bounds) continue;
+      checked++;
+      assert.ok(bounds.top >= -1 && bounds.bottom < bounds.navTop, `${path}: ${JSON.stringify(bounds)}`);
+      assert.notEqual(bounds.outline, 'none', `${path}: ${bounds.name} has no outline`);
+    }
+    assert.equal(checked, total, path);
+  }
+});
+
+test('system: Wardrobe combines category, season and destination and clears an empty result', async (t) => {
+  const { page, base } = await openFitCheck(t);
+  await page.goto(`${base}/index.html`);
+  assert.equal(await page.locator('.wardrobe-banner h2').innerText(), 'My wardrobe →');
+  await page.locator('.wardrobe-banner').click();
+  await page.waitForURL(`${base}/wardrobe.html`, { waitUntil: 'load' });
+  const total = await page.locator('.clothing-card').count();
+  const visible = page.locator('.clothing-card:visible');
+  await page.locator('[data-filter="shoes"]').click();
+  await page.locator('#season-filter').selectOption('winter');
+  await page.locator('#place-filter').selectOption('mountains');
+  assert.deepEqual(await visible.locator('h3').allTextContents(), ['Taupe Hiking Boots']);
+  await page.locator('#place-filter').selectOption('beach');
+  assert.equal(await visible.count(), 0);
+  assert.equal(await page.locator('#empty-state').isVisible(), true);
+  await page.locator('#empty-state [data-clear-filters]').click();
+  assert.equal(await visible.count(), total);
+  assert.equal(await page.locator('[data-filter="all"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(await page.locator('#season-filter').inputValue(), '');
+  assert.equal(await page.locator('#place-filter').inputValue(), '');
 });

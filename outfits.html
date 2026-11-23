@@ -130,7 +130,8 @@
       margin: 12px 4px 0;
     }
 
-    .recommendation-explanation {
+    .recommendation-explanation,
+    .context-explanation {
       color: #806f60;
       font-size: 12px;
       line-height: 1.5;
@@ -138,8 +139,83 @@
     }
 
     [data-outfit-view="saved"] .recommendation-label,
-    [data-outfit-view="saved"] .recommendation-explanation {
+    [data-outfit-view="saved"] .recommendation-explanation,
+    [data-outfit-view="saved"] .context-explanation {
       display: none;
+    }
+
+    .context-explanation {
+      margin: 0 4px 8px;
+    }
+
+    #refine-outfit {
+      background: #fff;
+      border: 1px solid #eae3da;
+      border-radius: 18px;
+      padding: 0 12px;
+      margin-bottom: 16px;
+    }
+
+    #refine-outfit summary {
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 14px 0;
+    }
+
+    #refine-outfit form {
+      padding-bottom: 12px;
+    }
+
+    .context-selections {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .context-selections label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .context-selections select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #eae3da;
+      border-radius: 12px;
+      padding: 4px;
+      background: #faf8f5;
+      color: #29241f;
+      font: inherit;
+    }
+
+    .context-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+    }
+
+    .clear-context {
+      color: #806f60;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
+
+    #refine-outfit :focus-visible {
+      outline: 3px solid #b66d4b;
+      outline-offset: 2px;
+    }
+
+    #context-fallback {
+      color: #806f60;
+      margin-bottom: 16px;
     }
 
     .save-outfit {
@@ -371,7 +447,19 @@
         <a class="feedback-button" href="?occasion=casual-weekend">Casual Weekend</a>
         <a class="feedback-button" href="?occasion=party">Party</a>
       </nav>
+      <details id="refine-outfit" hidden>
+        <summary>Refine your outfit</summary>
+        <form method="get" action="outfits.html">
+          <input type="hidden" name="occasion">
+          <div class="context-selections"></div>
+          <div class="context-actions">
+            <button class="feedback-button" type="submit">Apply context</button>
+            <a class="clear-context" href="outfits.html">Reset context</a>
+          </div>
+        </form>
+      </details>
       <p class="intro" id="occasion-empty" hidden>No outfits match this occasion. Choose another occasion or select Any occasion.</p>
+      <p class="intro" id="context-fallback" hidden>No outfits match all your selections. Here are the closest options for this search.</p>
       <div class="saved-outfits-empty" id="saved-outfits-empty" hidden>
         <p class="intro">Your favorite looks, all in one place. Save outfits you love to revisit them later.</p>
         <button class="feedback-button" id="explore-outfits" type="button">Explore outfits</button>
@@ -388,7 +476,7 @@
       <div class="outfit-grid">
 
         <!-- Outfit 1: Everyday Casual -->
-        <div class="outfit-card" data-occasions="casual-weekend" data-styles="classic minimalist casual" data-colors="neutrals" data-priority="comfort-first">
+        <div class="outfit-card" data-occasions="casual-weekend" data-styles="classic minimalist casual" data-colors="neutrals" data-priority="comfort-first" data-weather="warm cool" data-dress-code="casual" data-setting="indoors outdoors" data-activity="walking seated">
 
           <div class="outfit-images">
             <img src="images/white-tshirt.jpg" data-item-id="white-tshirt" alt="White T-Shirt">
@@ -411,7 +499,7 @@
         </div>
 
         <!-- Outfit 2: Smart Casual -->
-        <div class="outfit-card" data-occasions="work dinner-out" data-styles="casual polished" data-colors="pastels" data-priority="balanced">
+        <div class="outfit-card" data-occasions="work dinner-out" data-styles="casual polished" data-colors="pastels" data-priority="balanced" data-weather="warm cool" data-dress-code="smart-casual" data-setting="indoors outdoors" data-activity="seated">
 
           <div class="outfit-images">
             <img src="images/pink-blouse.jpg" data-item-id="pink-blouse" alt="Pink Blouse">
@@ -434,7 +522,7 @@
         </div>
 
         <!-- Outfit 3: Weekend Outing -->
-        <div class="outfit-card" data-occasions="casual-weekend" data-styles="minimalist casual" data-colors="neutrals dark-colors" data-priority="comfort-first">
+        <div class="outfit-card" data-occasions="casual-weekend" data-styles="minimalist casual" data-colors="neutrals dark-colors" data-priority="comfort-first" data-weather="hot warm" data-dress-code="casual" data-setting="indoors outdoors" data-activity="walking seated">
 
           <div class="outfit-images two-items">
             <img src="images/black-dress.jpg" data-item-id="black-dress" alt="Black Dress">
@@ -455,7 +543,7 @@
           </div>
         </div>
 
-        <div class="outfit-card" data-occasions="work" data-styles="classic minimalist polished" data-colors="neutrals dark-colors" data-priority="balanced">
+        <div class="outfit-card" data-occasions="work" data-styles="classic minimalist polished" data-colors="neutrals dark-colors" data-priority="balanced" data-weather="cool" data-dress-code="smart-casual" data-setting="indoors" data-activity="seated">
           <div class="outfit-images">
             <img src="images/ivory-silk-blouse.jpg" data-item-id="ivory-silk-blouse" alt="Ivory Silk Blouse" loading="lazy">
             <img src="images/charcoal-pleated-trousers.jpg" data-item-id="charcoal-pleated-trousers" alt="Charcoal Pleated Trousers" loading="lazy">
@@ -471,7 +559,7 @@
           </div>
         </div>
 
-        <div class="outfit-card" data-occasions="dinner-out date-night" data-styles="trendy polished" data-colors="neutrals pastels dark-colors" data-priority="style-first">
+        <div class="outfit-card" data-occasions="dinner-out date-night" data-styles="trendy polished" data-colors="neutrals pastels dark-colors" data-priority="style-first" data-weather="hot warm" data-dress-code="dressy" data-setting="indoors" data-activity="seated">
           <div class="outfit-images">
             <img src="images/black-satin-halter-top.jpg" data-item-id="black-satin-halter-top" alt="Black Satin Halter Top" loading="lazy">
             <img src="images/champagne-satin-midi-skirt.jpg" data-item-id="champagne-satin-midi-skirt" alt="Champagne Satin Midi Skirt" loading="lazy">
@@ -487,7 +575,7 @@
           </div>
         </div>
 
-        <div class="outfit-card" data-occasions="date-night party" data-styles="classic polished bold" data-colors="dark-colors" data-priority="style-first">
+        <div class="outfit-card" data-occasions="date-night party" data-styles="classic polished bold" data-colors="dark-colors" data-priority="style-first" data-weather="warm" data-dress-code="dressy" data-setting="indoors" data-activity="seated">
           <div class="outfit-images">
             <img src="images/burgundy-satin-cocktail-dress.jpg" data-item-id="burgundy-satin-cocktail-dress" alt="Burgundy Satin Cocktail Dress" loading="lazy">
             <img src="images/pearl-drop-earrings.jpg" data-item-id="pearl-drop-earrings" alt="Pearl Drop Earrings" loading="lazy">
@@ -503,7 +591,7 @@
           </div>
         </div>
 
-        <div class="outfit-card" data-occasions="party" data-styles="trendy bold" data-colors="neutrals dark-colors" data-priority="style-first">
+        <div class="outfit-card" data-occasions="party" data-styles="trendy bold" data-colors="neutrals dark-colors" data-priority="style-first" data-weather="warm cool" data-dress-code="dressy" data-setting="indoors" data-activity="seated">
           <div class="outfit-images">
             <img src="images/silver-sequin-top.jpg" data-item-id="silver-sequin-top" alt="Silver Sequin Top" loading="lazy">
             <img src="images/black-tuxedo-trousers.jpg" data-item-id="black-tuxedo-trousers" alt="Black Tuxedo Trousers" loading="lazy">
@@ -549,6 +637,8 @@
   </div>
   <script src="outfit-occasions.js"></script>
   <script src="outfit-feedback.js"></script>
+  <script src="outfit-context.js"></script>
+  <script src="outfit-context-controls.js"></script>
   <script src="outfit-ranking.js"></script>
   <script src="style-preferences-store.js"></script>
   <script src="outfit-recommendations.js"></script>
@@ -556,5 +646,6 @@
   <script src="wear-history-store.js"></script>
   <script src="wear-history.js"></script>
   <script src="saved-outfits.js"></script>
+  <script src="sticky-nav-focus.js"></script>
 </body>
 </html>

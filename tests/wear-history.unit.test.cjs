@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  localWearDate, readWearHistory, recordWear, undoWear, newestWearsFirst, writeWearHistory,
+  localWearDate, readWearHistory, recordWear, undoWear, newestWearsFirst, writeWearRecord,
 } = require('../wear-history-store.js');
 
 test('wear dates use the local calendar and are zero-padded', () => {
@@ -36,6 +36,6 @@ test('failed storage does not prevent an in-memory wear', () => {
     setItem() { throw new Error('Blocked'); },
   };
   const entries = recordWear(readWearHistory(new Set(['work']), storage), 'work', '2026-11-23');
-  assert.equal(writeWearHistory(entries, storage), false);
+  assert.equal(writeWearRecord('work', '2026-11-23', true, storage), false);
   assert.equal(entries.length, 1);
 });

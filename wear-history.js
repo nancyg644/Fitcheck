@@ -4,6 +4,7 @@ function setupWearHistory(outfits) {
   const status = document.getElementById('wear-history-status');
   const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
   const controls = new Map();
+  const unsavedChanges = new Map();
   let entries;
   let midnightTimer;
 
@@ -47,11 +48,23 @@ function setupWearHistory(outfits) {
     empty.hidden = sorted.length > 0;
   }
 
-  function save(entriesToStore) {
-    entries = entriesToStore;
-    status.textContent = writeWearHistory(entries) ? '' :
-      'Browser storage is unavailable. Wear changes may be lost when you leave or refresh.';
+  function refreshRecords() {
+    entries = readWearHistory(knownIds);
+    for (const { id, date, worn } of unsavedChanges.values()) {
+      entries = worn ? recordWear(entries, id, date) : undoWear(entries, id, date);
+    }
     renderControls();
+    if (window.location.hash === '#wear-history') renderHistory();
+  }
+
+  function save(id, date, worn) {
+    const key = `${date}:${id}`;
+    if (writeWearRecord(id, date, worn)) unsavedChanges.delete(key);
+    else unsavedChanges.set(key, { id, date, worn });
+    status.textContent = unsavedChanges.size
+      ? 'Browser storage is unavailable. Wear changes may be lost when you leave or refresh.'
+      : '';
+    refreshRecords();
   }
 
   for (const { id, card } of outfits) {
@@ -74,16 +87,20 @@ function setupWearHistory(outfits) {
     controls.set(id, { card, name, summary, log, undo });
 
     log.addEventListener('click', () => {
-      const next = recordWear(entries, id, localWearDate());
-      if (next !== entries) save(next);
+      const date = localWearDate();
+      if (!entries.some((entry) => entry.outfitId === id && entry.date === date)) save(id, date, true);
     });
     undo.addEventListener('click', () => {
-      save(undoWear(entries, id, localWearDate()));
+      save(id, localWearDate(), false);
       log.focus();
     });
   }
 
-  entries = readWearHistory(new Set(controls.keys()));
+  const knownIds = new Set(controls.keys());
+  entries = readWearHistory(knownIds);
+  window.addEventListener('storage', ({ key }) => {
+    if (key === null || key === wearHistoryKey || key.startsWith(wearRecordPrefix)) refreshRecords();
+  });
 
   function refreshDay() {
     renderControls();

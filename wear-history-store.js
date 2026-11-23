@@ -1,4 +1,5 @@
 const wearHistoryKey = 'fitcheck:wear-history';
+const wearRecordPrefix = `${wearHistoryKey}:`;
 
 function localWearDate(date = new Date()) {
   const year = String(date.getFullYear()).padStart(4, '0');
@@ -15,17 +16,32 @@ function isWearDate(date) {
 
 function readWearHistory(knownIds, storage) {
   try {
-    const stored = JSON.parse((storage ?? localStorage).getItem(wearHistoryKey));
-    if (!Array.isArray(stored)) return [];
-
-    const seen = new Set();
-    return stored.filter((entry) => {
-      if (!entry || !knownIds.has(entry.outfitId) || !isWearDate(entry.date)) return false;
-      const key = JSON.stringify([entry.outfitId, entry.date]);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).map(({ outfitId, date }) => ({ outfitId, date }));
+    const store = storage ?? localStorage;
+    let stored;
+    try { stored = JSON.parse(store.getItem(wearHistoryKey)); } catch { stored = null; }
+    const entries = new Map();
+    for (const entry of Array.isArray(stored) ? stored : []) {
+      if (!entry || !knownIds.has(entry.outfitId) || !isWearDate(entry.date)) continue;
+      const { outfitId, date } = entry;
+      entries.set(`${wearRecordPrefix}${date}:${outfitId}`, { outfitId, date, timestamp: 0 });
+    }
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i);
+      if (!key?.startsWith(wearRecordPrefix)) continue;
+      const date = key.slice(wearRecordPrefix.length, wearRecordPrefix.length + 10);
+      const outfitId = key.slice(wearRecordPrefix.length + 11);
+      if (!knownIds.has(outfitId) || !isWearDate(date) ||
+          key !== `${wearRecordPrefix}${date}:${outfitId}`) continue;
+      const value = store.getItem(key);
+      if (value === 'removed') {
+        entries.delete(key);
+      } else if (value && /^\d+$/.test(value)) {
+        entries.set(key, { outfitId, date, timestamp: Number(value) });
+      }
+    }
+    return [...entries.values()]
+      .sort((a, b) => a.timestamp - b.timestamp || a.outfitId.localeCompare(b.outfitId))
+      .map(({ outfitId, date }) => ({ outfitId, date }));
   } catch {
     return [];
   }
@@ -47,9 +63,9 @@ function newestWearsFirst(entries) {
   return [...entries].reverse().sort((a, b) => b.date.localeCompare(a.date));
 }
 
-function writeWearHistory(entries, storage) {
+function writeWearRecord(outfitId, date, worn, storage) {
   try {
-    (storage ?? localStorage).setItem(wearHistoryKey, JSON.stringify(entries));
+    (storage ?? localStorage).setItem(`${wearRecordPrefix}${date}:${outfitId}`, worn ? String(Date.now()) : 'removed');
     return true;
   } catch {
     return false;
@@ -57,5 +73,5 @@ function writeWearHistory(entries, storage) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { localWearDate, readWearHistory, recordWear, undoWear, newestWearsFirst, writeWearHistory };
+  module.exports = { localWearDate, readWearHistory, recordWear, undoWear, newestWearsFirst, writeWearRecord };
 }

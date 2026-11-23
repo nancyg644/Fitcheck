@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { readOutfitFeedback, clearOutfitFeedback } = require('../outfit-feedback.js');
 const {
-  readSavedOutfits, toggleSavedOutfit, writeSavedOutfits,
+  readSavedOutfits, writeSavedOutfit,
 } = require('../saved-outfits-store.js');
 
 test('integration: bookmarks persist using catalog IDs and survive a feedback reset', () => {
@@ -22,14 +22,12 @@ test('integration: bookmarks persist using catalog IDs and survive a feedback re
     removeItem(key) { data.delete(key); },
   };
 
-  let saved = readSavedOutfits(known, storage);
-  saved = toggleSavedOutfit(toggleSavedOutfit(saved, casual), work);
-  assert.equal(writeSavedOutfits(saved, storage), true);
+  assert.equal(writeSavedOutfit(casual, true, storage), true);
+  assert.equal(writeSavedOutfit(work, true, storage), true);
   assert.equal(readOutfitFeedback(casual, storage), 'down');
   assert.equal(readOutfitFeedback(work, storage), null);
   assert.equal(clearOutfitFeedback(storage), true);
   assert.deepEqual([...readSavedOutfits(known, storage)], [casual, work]);
-  saved = toggleSavedOutfit(readSavedOutfits(known, storage), casual);
-  assert.equal(writeSavedOutfits(saved, storage), true);
+  assert.equal(writeSavedOutfit(casual, false, storage), true);
   assert.deepEqual([...readSavedOutfits(known, storage)], [work]);
 });
