@@ -6,6 +6,8 @@ function setupWearHistory(resolveOutfit) {
   const dialog = document.getElementById('wear-date-dialog');
   const form = dialog.querySelector('form');
   const dateInput = form.elements.date;
+  const linkSelect = form.elements.wearChoice;
+  const linkControls = document.getElementById('wear-choice-controls');
   const error = document.getElementById('wear-date-error');
   const title = document.getElementById('wear-date-title');
   const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
@@ -86,8 +88,13 @@ function setupWearHistory(resolveOutfit) {
   }
 
   function save(id, entry) {
-    if (writeWearEntry(id, entry)) unsavedChanges.delete(id);
-    else unsavedChanges.set(id, entry);
+    const prior = entries.get(id);
+    if (writeWearEntry(id, entry)) {
+      unsavedChanges.delete(id);
+      globalThis.fitcheckAnalytics?.wear(entry ? (prior ? 'wear_edited' : 'wear_logged') : 'wear_deleted', entry, prior);
+    } else {
+      unsavedChanges.set(id, entry);
+    }
     status.textContent = unsavedChanges.size
       ? 'Browser storage is unavailable. Wear changes may be lost when you leave or refresh.'
       : '';
@@ -97,7 +104,16 @@ function setupWearHistory(resolveOutfit) {
   function openEditor(outfitId, entry = null) {
     if (dialog.open) return;
     const today = localWearDate();
-    draft = { outfitId, entry };
+    const choices = entry || typeof canAttributeWear === 'undefined'
+      ? [] : globalThis.fitcheckAnalytics?.choices(outfitId) ?? [];
+    draft = { outfitId, entry, choices };
+    linkSelect.replaceChildren(new Option('Do not link this wear', ''));
+    for (const choice of choices) {
+      const occasion = occasionNames[choice.metadata.occasion] ?? 'Any occasion';
+      const time = new Date(choice.timestamp).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      linkSelect.add(new Option(`${dateLabel(choice.metadata.choiceDate)} at ${time} · ${occasion}`, choice.eventId));
+    }
+    linkControls.hidden = choices.length === 0;
     title.textContent = `${entry ? 'Edit wear for' : 'Log wear for'} ${resolveOutfit(outfitId).name}`;
     dateInput.max = today;
     dateInput.value = entry?.date ?? today;
@@ -116,15 +132,24 @@ function setupWearHistory(resolveOutfit) {
       dateInput.focus();
       return;
     }
-    const { outfitId, entry } = draft;
+    const { outfitId, entry, choices } = draft;
     if (entry && !entries.has(entry.id)) {
       error.textContent = 'This wear was deleted in another tab.';
+      return;
+    }
+    const linkedAt = Date.now();
+    const choice = choices.find(({ eventId }) => eventId === linkSelect.value);
+    if (choice && !canAttributeWear(choice, outfitId, date, linkedAt)) {
+      error.textContent = 'This date cannot be linked to that choice. Choose a later wear date or leave it unlinked.';
+      linkSelect.focus();
       return;
     }
     // Close and clear the draft before committing so a second submit is ignored.
     draft = null;
     dialog.close();
-    const record = entry ? { ...entry, date } : newWearEntry(outfitId, date);
+    const record = entry ? { ...entries.get(entry.id), date } : newWearEntry(outfitId, date);
+    record.analyticsRevision = (record.analyticsRevision ?? 0) + 1;
+    if (choice) record.analyticsChoice = { id: choice.eventId, sessionId: choice.sessionId, linkedAt };
     save(record.id, record);
     if (entry) {
       const row = [...list.children].find((element) => element.dataset.wearId === entry.id);

@@ -133,6 +133,60 @@ selected button again to clear it. Feedback is saved separately for each outfit
 in this browser's localStorage and restored after refreshing. If browser storage
 is blocked, reactions work for the current visit but cannot be saved.
 
+## Local product analytics
+
+On a recommendation card, choose **Choose this outfit** to record an intent.
+This is separate from Like, Save, and Log wear. When logging that outfit, you
+can select **Link to an earlier outfit choice**. The default is unlinked.
+Only an explicitly linked wear counts. Its date must be on or after the local
+choice date and it must be linked within 14 days of the choice. Editing the
+wear date rechecks credit, and deleting the wear removes its credit. Each
+session counts at most once, even when more than one linked wear qualifies.
+
+Outfits starts a recommendation session in the current tab, including
+searches with no results. A session expires after 30 minutes of inactivity.
+An occasion or filter change starts a new search within an active session.
+Each search can show several batches. Refreshing or returning to the same
+occasion and filters without a different recommendation search in between
+resumes that search and avoids repeating impressions. An outfit that newly
+appears still counts as an impression. Changing the occasion or filters and
+then changing them back can count as a new search.
+
+The log collects session starts, occasion selections, applied context,
+displayed outfit IDs and batches, Show More clicks, reactions, save changes,
+choices, wear additions/edits/deletions, empty searches, sanitised error codes,
+and time spent generating, filtering, and ranking recommendations. Every
+event has an ID, UTC timestamp, type, metadata, and a session ID when relevant.
+Wear events also carry the source session of any explicit choice link.
+
+Open **Local analytics** on the **Profile** page to see the summary and
+export raw events and metrics as JSON or one row per session as CSV. The
+preliminary confirmed-wear rate divides sessions with a qualifying wear by
+all recorded sessions. The final OEC uses only sessions that are inactive
+and at least 14 days past the session start and all recorded choices. The
+summary shows how many sessions are still in follow-up. Selection rate and
+Show More rate use all sessions. Like and Save rates use sessions with at
+least one impression. Average time to choose uses the first choice per
+selecting session. The other measures count occasions and filters, divide
+empty searches by all searches, and report median and p95 generation time.
+The timing excludes loading images. Later wear edits can revise a reported
+rate, even after follow-up has closed.
+
+Analytics stays in localStorage on the current browser and site. FitCheck
+collects no names, raw error messages, stack traces, or external tracking
+IDs. Logs are capped at 90 days, 2,000 events, or roughly 1 MB, pruning whole
+session groups on writes. A duplicated tab can inherit the original tab's
+session state. Browser storage may be cleared or blocked, and an unlinked
+wear cannot be credited. **Clear analytics** clears the analytics log and
+choices after confirmation while keeping existing product data. Exports are
+local files, so share them only if you intend to share those observations.
+
+`analytics-store.js` handles storage, `analytics-session.js` tracks searches and
+batches, and `analytics-metrics.js` handles attribution, metrics, and exports.
+`analytics-browser.js`, `analytics-choice.js`, and `analytics-profile.js` connect
+those modules to the app. Tests live in `tests/analytics.unit.test.cjs`,
+`tests/analytics.test.cjs`, and the browser suite.
+
 ### Automated tests
 
 With Node.js 22 or newer and Google Chrome installed, install the test dependency

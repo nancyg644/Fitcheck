@@ -65,6 +65,7 @@ function bindOutfitFeedback(group) {
         } else {
           localStorage.setItem(storageKey, selected);
         }
+        globalThis.fitcheckAnalytics?.reaction(group.dataset.outfitId, selected);
       } catch {
         // Storage can be blocked or full. Keep the buttons usable either way.
       }

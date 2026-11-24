@@ -1,4 +1,5 @@
 const outfitBrowse = (() => {
+  const generationStarted = performance.now();
   const grid = document.querySelector('.outfit-grid');
   const more = document.getElementById('show-more-outfits');
   const catalog = new Map(wardrobeCatalog.map((item) => [item.id, item]));
@@ -68,6 +69,8 @@ const outfitBrowse = (() => {
     (eligible.length > 0 || criteria.length > 0 || candidates.length > 0);
   document.getElementById('context-empty').hidden = invalidOccasion || !criteria.length || eligible.length > 0;
   for (const outfit of outfits) outfit.card.hidden = true;
+  globalThis.fitcheckAnalytics?.configure({ occasion: invalidOccasion ? null : occasion, invalidOccasion, filters: criteria,
+    eligibleCount: results.length, durationMs: Math.round(performance.now() - generationStarted) });
 
   function contextPhrase({ field, value }) {
     const option = outfitContextFields[field].options[value].toLowerCase();
@@ -125,6 +128,7 @@ const outfitBrowse = (() => {
       const { outfit } = result;
       displayed.add(outfit.id);
       const card = mount(outfit.id);
+      if (typeof appendRecommendationChoice !== 'undefined') appendRecommendationChoice(card, outfit);
       card.hidden = false;
       if (criteria.length || outfit.generated) {
         const explanation = document.createElement('p');
@@ -138,6 +142,7 @@ const outfitBrowse = (() => {
     }
     refreshPersonalization();
     refreshMore();
+    trackRecommendations();
     if (next.length && moveFocus) {
       next[0].outfit.card.querySelector('h3').tabIndex = -1;
       next[0].outfit.card.querySelector('h3').focus();
@@ -148,7 +153,14 @@ const outfitBrowse = (() => {
     more.hidden = !showRecommendations || displayed.size >= results.length;
   }
 
-  more.addEventListener('click', showMore);
+  function trackRecommendations() {
+    globalThis.fitcheckAnalytics?.display([...displayed]);
+  }
+
+  more.addEventListener('click', () => {
+    globalThis.fitcheckAnalytics?.showMore();
+    showMore();
+  });
   showMore();
 
   function refreshPersonalization() {
@@ -178,5 +190,5 @@ const outfitBrowse = (() => {
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) window.location.reload();
   });
-  return { resolve, mount, displayed, refreshMore };
+  return { resolve, mount, displayed, refreshMore, trackRecommendations };
 })();

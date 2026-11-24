@@ -40,8 +40,12 @@
     registerWearControls(outfit);
     button.addEventListener('click', () => {
       const isSaved = !saved.has(id);
-      if (writeSavedOutfit(id, isSaved)) unsavedChanges.delete(id);
-      else unsavedChanges.set(id, isSaved);
+      if (writeSavedOutfit(id, isSaved)) {
+        unsavedChanges.delete(id);
+        globalThis.fitcheckAnalytics?.bookmark(id, isSaved);
+      } else {
+        unsavedChanges.set(id, isSaved);
+      }
       status.textContent = unsavedChanges.size
         ? 'Browser storage is unavailable. This change may be lost when you leave or refresh.'
         : '';
@@ -110,7 +114,10 @@
       allLink.focus();
     });
   }
-  window.addEventListener('hashchange', render);
+  window.addEventListener('hashchange', () => {
+    render();
+    outfitBrowse.trackRecommendations();
+  });
   views.hidden = false;
   render();
 })();
