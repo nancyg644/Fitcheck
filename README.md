@@ -21,10 +21,12 @@ dresses. A compatible jacket can extend a combination to cool weather.
 Walking requires walking-suitable shoes and room to move in the rest of the outfit.
 
 Every selected occasion and context filter must match. The generator keeps up
-to two compatible variants per base before ranking. The list shows one look
-per base, uses the existing feedback and style score, and favors variety among
-similarly scored looks. It keeps the predefined card when a generated look
-duplicates its pieces or base. **Show more outfits** reveals six more from the
+to two discovery variants per base and also retains eligible liked variants
+for ranking. The list gives distinct garment bases priority and saves extra
+liked variants for later results. Exact duplicates keep their predefined card.
+Personalized scores favor variety among similarly ranked looks, while the
+context explanation names the selected dress code when the outfit qualifies.
+**Show more outfits** reveals six more from the
 same ranked list, so the current filters and earlier cards stay in place.
 
 A generated outfit's ID is based on its stable wardrobe item IDs. Saved looks,

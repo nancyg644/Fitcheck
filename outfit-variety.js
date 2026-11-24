@@ -4,7 +4,7 @@ function outfitSignature(itemIds) {
 
 function variedOutfitOrder(ranked) {
   const predefinedBases = new Set(ranked.filter(({ outfit }) => !outfit.generated).map(({ outfit }) => outfit.base));
-  const pending = ranked.filter(({ outfit }) => !outfit.generated || !predefinedBases.has(outfit.base));
+  const pending = ranked.filter(({ outfit, liked }) => liked || !outfit.generated || !predefinedBases.has(outfit.base));
   const ordered = [];
   const usedBases = new Set();
   const usedPieces = new Map();
@@ -32,7 +32,8 @@ function variedOutfitOrder(ranked) {
     const palette = outfit.colors.slice().sort().join('+');
     usedPalettes.set(palette, (usedPalettes.get(palette) ?? 0) + 1);
   }
-  return ordered;
+  // Delay an extra liked or predefined variant until every distinct base has had a turn.
+  return ordered.concat(pending.filter(({ liked, outfit }) => liked || !outfit.generated));
 }
 
 if (typeof module !== 'undefined') module.exports = { outfitSignature, variedOutfitOrder };

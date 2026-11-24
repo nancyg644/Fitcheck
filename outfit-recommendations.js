@@ -24,7 +24,9 @@ const outfitBrowse = (() => {
   const predefinedSignatures = new Set(outfits.map(({ itemIds }) => outfitSignature(itemIds)));
   const criteria = readOutfitContext(new URLSearchParams(window.location.search));
   const occasion = new URLSearchParams(window.location.search).get('occasion');
-  const generated = generateOutfits(wardrobeCatalog, occasion, criteria, matchOutfitContext)
+  const initialFeedback = readFeedback();
+  const likedIds = new Set(initialFeedback.filter(({ reaction }) => reaction === 'up').map(({ id }) => id));
+  const generated = generateOutfits(wardrobeCatalog, occasion, criteria, matchOutfitContext, likedIds)
     .filter(({ itemIds }) => !predefinedSignatures.has(outfitSignature(itemIds)));
   const candidates = outfits.filter(({ card }) => !card.hidden);
   const eligible = [...filterOutfitsByContext(candidates, criteria), ...generated.map((outfit) => ({
@@ -60,7 +62,7 @@ const outfitBrowse = (() => {
 
   const list = new Intl.ListFormat('en');
   const preferences = readStylePreferences();
-  const results = variedOutfitOrder(rankOutfits(eligible, readFeedback(), preferences));
+  const results = variedOutfitOrder(rankOutfits(eligible, initialFeedback, preferences));
   const invalidOccasion = Boolean(occasion && !Object.hasOwn(occasionNames, occasion));
   document.getElementById('occasion-empty').hidden = !invalidOccasion &&
     (eligible.length > 0 || criteria.length > 0 || candidates.length > 0);

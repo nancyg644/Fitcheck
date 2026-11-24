@@ -63,7 +63,7 @@ test('stable IDs resolve outside the current query and reject invalid combinatio
 });
 
 test('the preferred outfit remains first and variety suppresses repeated bases deterministically', () => {
-  const outfits = generate('work');
+  const outfits = generate('work').map((outfit) => ({ ...outfit, generated: true }));
   const chosen = outfits.at(-1);
   const feedback = [{ ...chosen, reaction: 'up' }];
   const rank = () => variedOutfitOrder(rankOutfits(outfits, feedback, { styles: ['classic'] }))
@@ -73,4 +73,29 @@ test('the preferred outfit remains first and variety suppresses repeated bases d
   assert.deepEqual(ordered.map(({ id }) => id), rank().map(({ id }) => id));
   assert.equal(new Set(ordered.map(({ base }) => base)).size, ordered.length);
   assert.ok(new Set(ordered.slice(0, 6).map(({ items }) => items[0].id)).size >= 3);
+});
+
+test('a liked Work variant survives the cap only while it passes compatibility and every filter', () => {
+  const id = 'gen-v1:pink-blouse+sand-linen-trousers+white-sneakers+pearl-drop-earrings';
+  const incompatible = 'gen-v1:pink-blouse+sand-linen-trousers+black-running-shoes';
+  const liked = new Set([id, incompatible]);
+  const contains = (occasion, criteria) =>
+    generateOutfits(wardrobeCatalog, occasion, criteria, matchOutfitContext, liked).some((outfit) => outfit.id === id);
+  assert.ok(generate('work', query('activity=walking')).some((outfit) => outfit.id === id));
+  assert.equal(generate('work').some((outfit) => outfit.id === id), false);
+  assert.equal(contains('work', []), true);
+  assert.equal(contains('work', query('setting=indoors&dress-code=dressy')), false);
+  assert.equal(contains('party', []), false);
+  assert.equal(generateOutfits(wardrobeCatalog, 'work', [], matchOutfitContext, liked)
+    .some((outfit) => outfit.id === incompatible), false);
+});
+
+test('extra liked variants remain available after the distinct garment bases', () => {
+  const outfits = generate('work');
+  const variants = outfits.filter(({ base }) => base === outfits[0].base);
+  assert.equal(variants.length, 2);
+  const results = variedOutfitOrder(rankOutfits(outfits.map((outfit) => ({ ...outfit, generated: true })),
+    variants.map((outfit) => ({ ...outfit, reaction: 'up' }))));
+  assert.equal(new Set(results.slice(0, -1).map(({ outfit }) => outfit.base)).size, results.length - 1);
+  assert.equal(results.filter(({ outfit }) => outfit.base === variants[0].base).length, 2);
 });

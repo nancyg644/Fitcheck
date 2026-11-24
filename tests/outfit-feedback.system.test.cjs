@@ -759,3 +759,49 @@ test('system: generated saves, feedback, and dated wears survive an unrelated se
     document.querySelector(`[data-outfit-id="${id}"] [data-reaction="down"]`).getAttribute('aria-pressed') === 'true', id);
   assert.deepEqual(errors, []);
 });
+
+async function revealOutfit(page, outfitId) {
+  const card = page.locator('.outfit-grid .outfit-card:visible').filter({
+    has: page.locator(`[data-outfit-id="${outfitId}"]`),
+  });
+  const more = page.getByRole('button', { name: 'Show more outfits', exact: true });
+  while (!await card.isVisible() && await more.isVisible()) await more.click();
+  return card;
+}
+
+test('system: a liked Work outfit stays available after clearing Lots of walking', async (t) => {
+  const { page, base, errors } = await openFitCheck(t);
+  const work = `${base}/outfits.html?occasion=work`;
+  const id = 'gen-v1:pink-blouse+sand-linen-trousers+white-sneakers+pearl-drop-earrings';
+  await page.goto(`${work}&activity=walking`);
+  const walking = await revealOutfit(page, id);
+  assert.ok(await walking.isVisible());
+  await walking.getByRole('button', { name: /^Thumbs up for/ }).click();
+  await page.getByLabel('Activity level').selectOption({ label: 'No preference' });
+  await page.getByRole('button', { name: 'Apply context', exact: true }).click();
+  await page.waitForURL(work, { waitUntil: 'load' });
+  const unfiltered = await revealOutfit(page, id);
+  assert.ok(await unfiltered.isVisible());
+  assert.equal(await unfiltered.getByRole('button', { name: /^Thumbs up for/ }).getAttribute('aria-pressed'), 'true');
+  await page.goto(`${work}&weather=cold`);
+  assert.ok(await page.locator('#context-empty').isVisible());
+  assert.equal(await page.locator(`[data-outfit-id="${id}"]:visible`).count(), 0);
+  assert.deepEqual(errors, []);
+});
+
+test('system: a multi-code outfit explains the selected Dressy or Smart casual filter', async (t) => {
+  const { page, base, errors } = await openFitCheck(t);
+  const id = 'gen-v1:ivory-silk-blouse+charcoal-pleated-trousers+black-pointed-toe-pumps+gold-hoop-earrings';
+  await page.goto(`${base}/outfits.html?occasion=party&weather=cool&dress-code=dressy&setting=indoors`);
+  const dressy = await revealOutfit(page, id);
+  assert.ok(await dressy.isVisible());
+  assert.match(await dressy.locator('.context-explanation').innerText(), /Suitable for Party.*dressy dress code/);
+  assert.doesNotMatch(await dressy.locator('.outfit-description').innerText(), /smart casual/i);
+  await dressy.getByRole('button', { name: /^Thumbs up for/ }).click();
+  await page.goto(`${base}/outfits.html?occasion=dinner-out&weather=cool&dress-code=smart-casual&setting=indoors`);
+  const smart = await revealOutfit(page, id);
+  assert.ok(await smart.isVisible());
+  assert.match(await smart.locator('.context-explanation').innerText(), /Suitable for Dinner Out.*smart casual dress code/);
+  assert.doesNotMatch(await smart.locator('.outfit-description').innerText(), /dressy/i);
+  assert.deepEqual(errors, []);
+});

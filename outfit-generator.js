@@ -45,8 +45,6 @@ function describeGeneratedOutfit(items) {
         (item.category !== 'bottoms' && item.weather.includes('warm')))) weather = ['cool'];
   if (accessory) weather = weather.filter((value) => accessory.weather.includes(value));
   const dressCodes = intersectOutfitTags(items, 'dressCodes');
-  const style = dressCodes.length === 1 && dressCodes[0] === 'dressy' ? 'Dressy' :
-    dressCodes.includes('smart-casual') ? 'Smart casual' : 'Casual';
   const colors = [...new Set(essential.map(({ color }) => color))];
   const palette = colors.length === 1 ? `a ${colors[0]} palette` :
     `${colors.slice(0, -1).join(', ')} and ${colors.at(-1)} tones`;
@@ -69,7 +67,7 @@ function describeGeneratedOutfit(items) {
     colors: [...new Set(essential.flatMap(({ colors }) => colors))],
     priority: dressCodes.includes('dressy') ? 'style-first' :
       shoes.activity.includes('walking') ? 'comfort-first' : 'balanced',
-    description: `A ${style.toLowerCase()} pairing in ${palette}, finished with ${shoes.name}.` +
+    description: `A pairing in ${palette}, finished with ${shoes.name}.` +
       (layer ? ` The ${layer.name} adds a light layer for cool weather.` : '') +
       (accessory ? ` Finish with ${accessory.name}.` : ''),
   };
@@ -89,7 +87,7 @@ function resolveGeneratedOutfit(id, catalog) {
   return describeGeneratedOutfit(items);
 }
 
-function generateOutfits(items, occasion, criteria, matchesContext) {
+function generateOutfits(items, occasion, criteria, matchesContext, likedIds = new Set()) {
   const byCategory = (category) => items.filter((item) => item.category === category &&
     (!occasion || item.occasions.includes(occasion)));
   if (occasion && !Object.hasOwn(occasionNames, occasion)) return [];
@@ -103,6 +101,7 @@ function generateOutfits(items, occasion, criteria, matchesContext) {
   const result = [];
   for (const body of bases) {
     const compatible = [];
+    const retained = [];
     for (const shoe of shoes) {
       if (!coordinatedColors([...body, shoe]) ||
           !intersectOutfitTags([...body, shoe], 'dressCodes').length) continue;
@@ -111,21 +110,19 @@ function generateOutfits(items, occasion, criteria, matchesContext) {
         const core = layer ? [...body, shoe, layer] : [...body, shoe];
         if (!outfitShapeWorks(body[0], body[1], shoe, layer) || !coordinatedColors(core) ||
             !intersectOutfitTags(core, 'dressCodes').length) continue;
-        let outfit = describeGeneratedOutfit(core);
+        const outfit = describeGeneratedOutfit(core);
         if (!fits(outfit)) continue;
-        const accessory = accessories.find((item) => {
-          const dressy = outfit.context['dress-code'].includes('dressy');
-          if (item.shape === 'belt' || item.shape === 'scarf' || item.shape === 'silk') return false;
-          if (item.shape === 'sun' && !criteria.some(({ field, value }) => field === 'setting' && value === 'outdoors')) return false;
-          if (dressy && !['jewelry', 'clutch'].includes(item.shape)) return false;
-          return coordinatedColors([...core, item]) &&
-            outfit.context.weather.every((weather) => item.weather.includes(weather)) &&
-            Object.entries(outfit.context).every(([field, values]) => {
-              const tags = field === 'dress-code' ? item.dressCodes : item[field];
-              return values.every((value) => tags.includes(value));
-            });
-        });
-        if (accessory) outfit = describeGeneratedOutfit([...core, accessory]);
+        const canAddAccessory = (item) => {
+          if (['belt', 'scarf', 'silk'].includes(item.shape)) return false;
+          if (outfit.context['dress-code'].includes('dressy') &&
+              !['jewelry', 'clutch'].includes(item.shape)) return false;
+          return coordinatedColors([...core, item]) && Object.entries(outfit.context).every(([field, values]) => {
+            const tags = field === 'dress-code' ? item.dressCodes : item[field];
+            return values.every((value) => tags.includes(value));
+          });
+        };
+        const outdoors = criteria.some(({ field, value }) => field === 'setting' && value === 'outdoors');
+        const accessory = accessories.find((item) => (item.shape !== 'sun' || outdoors) && canAddAccessory(item));
         // Prefer footwear with a clear role and layers that add a usable temperature band.
         const quality = Number(!['active', 'trail', 'slide'].includes(shoe.shape)) +
           Number(shoe.activity.includes('walking')) +
@@ -135,12 +132,21 @@ function generateOutfits(items, occasion, criteria, matchesContext) {
           (occasion === 'date-night' || occasion === 'party' ?
             Number(outfit.context['dress-code'].includes('dressy')) +
             Number(body.length === 1 || body.some(({ shape }) => ['statement', 'fluid'].includes(shape))) : 0);
-        compatible.push({ ...outfit, quality });
+        const choice = accessory ? describeGeneratedOutfit([...core, accessory]) : outfit;
+        compatible.push({ ...choice, quality });
+        if (accessory && likedIds.has(outfit.id)) retained.push({ ...outfit, quality });
+        if (likedIds.size) {
+          for (const item of accessories) {
+            if (item === accessory || !likedIds.has(`${outfit.id}+${item.id}`) || !canAddAccessory(item)) continue;
+            const liked = describeGeneratedOutfit([...core, item]);
+            if (fits(liked)) retained.push({ ...liked, quality });
+          }
+        }
       }
     }
     compatible.sort((a, b) => b.quality - a.quality || a.id.localeCompare(b.id));
-    // Keep at most two shoe/layer alternatives for any base. The display picks one.
-    result.push(...compatible.slice(0, 2));
+    // Keep the discovery pool small while letting all eligible Likes reach ranking.
+    result.push(...compatible.filter(({ id }, index) => index < 2 || likedIds.has(id)), ...retained);
   }
   return result;
 
