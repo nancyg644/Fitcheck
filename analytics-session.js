@@ -29,11 +29,14 @@ function createRecommendationTracker(store, navigation, now = Date.now, makeId =
   function start(details) {
     const session = touch();
     if (!session) return null;
-    const signature = JSON.stringify([details.occasion, details.filters]);
+    const signature = JSON.stringify([details.invalidOccasion ? 'invalid-occasion' : details.occasion, details.filters]);
     const prior = navigation.getEntry();
     if (search?.sessionId !== session.id || search.signature !== signature) {
-      search = prior?.sessionId === session.id && prior.signature === signature
-        ? prior : { id: makeId(), sessionId: session.id, signature };
+      const matches = (entry) => entry?.sessionId === session.id && entry.signature === signature;
+      // A link back from another page creates a fresh history entry. Resume the
+      // most recent search when its filters are unchanged.
+      search = [prior, session.lastSearch].find(matches) ??
+        { id: makeId(), sessionId: session.id, signature };
       navigation.setEntry(search);
       shown = new Set();
       for (const event of store.snapshot() ?? []) {
@@ -42,6 +45,8 @@ function createRecommendationTracker(store, navigation, now = Date.now, makeId =
         }
       }
     }
+    active.lastSearch = search;
+    navigation.setTab(active);
     const log = (type, metadata, key) =>
       store.record(type, session.id, { searchId: search.id, ...metadata }, search.id + ':' + key, session.epoch);
     if (active.occasion !== details.occasion) {

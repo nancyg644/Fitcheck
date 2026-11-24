@@ -20,7 +20,8 @@ function summarizeAnalytics(events, now = Date.now()) {
   const timing = [];
   const errors = new Map();
   function count(map, key) { map.set(key, (map.get(key) ?? 0) + 1); }
-  const ordered = [...events].sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  const ordered = events.filter(({ timestamp }) => Date.parse(timestamp) <= now)
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   for (const event of ordered) {
     if (event.type !== 'recommendation_session_started') continue;
     const at = Date.parse(event.timestamp);

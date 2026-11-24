@@ -69,7 +69,7 @@ const outfitBrowse = (() => {
     (eligible.length > 0 || criteria.length > 0 || candidates.length > 0);
   document.getElementById('context-empty').hidden = invalidOccasion || !criteria.length || eligible.length > 0;
   for (const outfit of outfits) outfit.card.hidden = true;
-  globalThis.fitcheckAnalytics?.configure({ occasion: invalidOccasion ? null : occasion, filters: criteria,
+  globalThis.fitcheckAnalytics?.configure({ occasion: invalidOccasion ? null : occasion, invalidOccasion, filters: criteria,
     eligibleCount: results.length, durationMs: Math.round(performance.now() - generationStarted) });
 
   function contextPhrase({ field, value }) {

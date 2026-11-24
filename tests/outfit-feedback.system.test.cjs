@@ -961,3 +961,28 @@ test('system: analytics tracks separate tabs and leaves recommendations usable w
   assert.ok(await blocked.getByRole('button', { name: 'Export JSON' }).isDisabled());
   assert.deepEqual(errors, []);
 });
+
+test('system: returning through Profile or Wardrobe resumes the same analytics search', async (t) => {
+  const { page, base, errors } = await openFitCheck(t);
+  const url = `${base}/outfits.html`;
+  const summary = () => page.evaluate(() => {
+    const [row] = summarizeAnalytics(fitcheckAnalytics.snapshot()).rows;
+    return { searches: row.searches, impressions: row.impressions };
+  });
+  const navigateBack = async (destination) => {
+    await page.locator(`a[href="${destination}"]`).click();
+    await page.waitForURL(`${base}/${destination}`, { waitUntil: 'load' });
+    await page.locator('.bottom-nav a[href="outfits.html"]').click();
+    await page.waitForURL(url, { waitUntil: 'load' });
+  };
+  await page.goto(url);
+  await navigateBack('profile.html');
+  await navigateBack('wardrobe.html');
+  await page.reload();
+  assert.deepEqual(await summary(), { searches: 1, impressions: 6 });
+  await page.getByRole('button', { name: 'Show more outfits' }).click();
+  await navigateBack('profile.html');
+  await page.getByRole('button', { name: 'Show more outfits' }).click();
+  assert.deepEqual(await summary(), { searches: 1, impressions: 12 });
+  assert.deepEqual(errors, []);
+});

@@ -31,11 +31,23 @@ test('recommendation sessions survive refresh and filter navigation, then expire
   tracker().display(details, ['one']);
   assert.equal(store.snapshot().filter((event) => event.type === 'recommendations_displayed').length, 1);
   entry = null;
+  // Same search reached from another page, with a newly visible outfit.
+  tracker().display(details, ['one', 'new']);
+  assert.deepEqual(summarizeAnalytics(store.snapshot(), at).rows.map((row) => [row.searches, row.impressions]), [[1, 2]]);
+  entry = null;
   tracker().display({ ...details, filters: [{ field: 'weather', value: 'cool' }] }, ['one', 'two']);
-  assert.deepEqual(summarizeAnalytics(store.snapshot(), at).rows.map((row) => [row.searches, row.impressions]), [[2, 3]]);
-  at += analyticsTimeout;
+  assert.deepEqual(summarizeAnalytics(store.snapshot(), at).rows.map((row) => [row.searches, row.impressions]), [[2, 4]]);
+  entry = null;
   tracker().display(details, ['one']);
-  assert.equal(summarizeAnalytics(store.snapshot(), at).totalSessions, 2);
+  assert.deepEqual(summarizeAnalytics(store.snapshot(), at).rows.map((row) => [row.searches, row.impressions]), [[3, 5]]);
+  at += analyticsTimeout;
+  const invalid = { ...details, occasion: null, invalidOccasion: true, eligibleCount: 0 };
+  tracker().display(invalid, []);
+  entry = null;
+  tracker().display({ ...details, occasion: null }, ['one']);
+  const afterTimeout = summarizeAnalytics(store.snapshot(), at);
+  assert.equal(afterTimeout.totalSessions, 2);
+  assert.deepEqual(afterTimeout.rows.map((row) => [row.searches, row.emptySearches, row.impressions]), [[3, 0, 5], [2, 1, 1]]);
 });
 
 test('attribution requires an explicit choice for the same outfit and a valid date and link window', () => {
@@ -84,7 +96,10 @@ test('the final OEC counts only closed sessions and follows edits and deletions 
   assert.equal(summarizeAnalytics(events, now).finalWearRate, 1);
   events.push(event('wear_deleted', 'deleted', null, now, { ...wear, revision: 4 }));
   assert.equal(summarizeAnalytics(events, now).finalWearRate, 0);
-  assert.equal(summarizeAnalytics(events, start + analyticsDay).finalWearRate, null);
+  const historical = summarizeAnalytics(events, start + analyticsDay);
+  assert.equal(historical.totalSessions, 1);
+  assert.equal(historical.preliminaryWearRate, 1);
+  assert.equal(historical.finalWearRate, null);
 });
 
 test('independent writers keep both events and clearing only resets analytics', () => {

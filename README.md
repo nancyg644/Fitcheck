@@ -146,8 +146,11 @@ session counts at most once, even when more than one linked wear qualifies.
 Outfits starts a recommendation session in the current tab, including
 searches with no results. A session expires after 30 minutes of inactivity.
 An occasion or filter change starts a new search within an active session.
-Each search can show several batches. Refreshing the same search avoids
-repeating impressions for outfits that were already shown.
+Each search can show several batches. Refreshing or returning to the same
+occasion and filters without a different recommendation search in between
+resumes that search and avoids repeating impressions. An outfit that newly
+appears still counts as an impression. Changing the occasion or filters and
+then changing them back can count as a new search.
 
 The log collects session starts, occasion selections, applied context,
 displayed outfit IDs and batches, Show More clicks, reactions, save changes,
