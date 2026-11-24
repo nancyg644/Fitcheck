@@ -39,5 +39,5 @@ function filterOutfitsByContext(outfits, criteria) {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { readOutfitContext, matchOutfitContext, filterOutfitsByContext };
+  module.exports = { outfitContextFields, readOutfitContext, matchOutfitContext, filterOutfitsByContext };
 }

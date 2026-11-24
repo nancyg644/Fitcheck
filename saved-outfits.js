@@ -19,21 +19,41 @@
   const explore = document.getElementById('explore-outfits');
   const status = document.getElementById('saved-outfits-status');
 
-  // Capture the already filtered and ranked search. Switching views only changes visibility.
-  const outfits = [...main.querySelectorAll('.outfit-card')].map((card) => {
-    const feedback = card.querySelector('.outfit-feedback');
-    const name = card.querySelector('h3').textContent;
+  const grid = main.querySelector('.outfit-grid');
+  const outfits = new Map();
+  const knownIds = { has: (id) => Boolean(outfitBrowse.resolve(id)) };
+  const unsavedChanges = new Map();
+  let saved = readSavedOutfits(knownIds);
+  const { renderHistory: renderWearHistory, registerOutfit: registerWearControls } =
+    setupWearHistory(outfitBrowse.resolve);
+
+  function registerOutfit(outfit) {
+    const { id, card, name } = outfit;
+    if (outfits.has(id)) return;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'feedback-button save-outfit';
     button.setAttribute('aria-label', `Save ${name}`);
-    feedback.after(button);
-    return { card, button, id: feedback.dataset.outfitId, showsInAll: !card.hidden };
-  });
-  const knownIds = new Set(outfits.map(({ id }) => id));
-  const unsavedChanges = new Map();
-  let saved = readSavedOutfits(knownIds);
-  const renderWearHistory = setupWearHistory(outfits);
+    card.querySelector('.outfit-feedback').after(button);
+    setBookmarkButton(button, saved.has(id));
+    outfits.set(id, { card, button, id });
+    registerWearControls(outfit);
+    button.addEventListener('click', () => {
+      const isSaved = !saved.has(id);
+      if (writeSavedOutfit(id, isSaved)) unsavedChanges.delete(id);
+      else unsavedChanges.set(id, isSaved);
+      status.textContent = unsavedChanges.size
+        ? 'Browser storage is unavailable. This change may be lost when you leave or refresh.'
+        : '';
+      refreshBookmarks();
+      if (showingSaved() && !saved.has(id)) (saved.size ? savedLink : explore).focus();
+    });
+  }
+
+  function setBookmarkButton(button, isSaved) {
+    button.setAttribute('aria-pressed', String(isSaved));
+    button.textContent = isSaved ? 'Saved' : 'Save';
+  }
 
   function showingSaved() {
     return window.location.hash === '#saved';
@@ -51,6 +71,7 @@
     contextControls.hidden = !allView;
     contextEmpty.hidden = !allView || !hasNoContextMatches;
     recommendationSettings.hidden = !allView;
+    outfitBrowse.refreshMore(allView);
     empty.hidden = !savedView || saved.size > 0;
     history.hidden = !historyView;
     if (historyView) renderWearHistory();
@@ -58,11 +79,11 @@
     currentLink.setAttribute('aria-current', 'page');
     savedLink.textContent = `Saved (${saved.size})`;
 
-    for (const { card, button, id, showsInAll } of outfits) {
+    if (savedView) for (const id of saved) outfitBrowse.mount(id);
+    for (const { card, button, id } of outfits.values()) {
       const isSaved = saved.has(id);
-      card.hidden = historyView || (savedView ? !isSaved : !showsInAll);
-      button.setAttribute('aria-pressed', String(isSaved));
-      button.textContent = isSaved ? 'Saved' : 'Save';
+      card.hidden = historyView || (savedView ? !isSaved : !outfitBrowse.displayed.has(id));
+      setBookmarkButton(button, isSaved);
     }
   }
 
@@ -75,20 +96,10 @@
     render();
   }
 
-  for (const { button, id } of outfits) {
-    button.addEventListener('click', () => {
-      const isSaved = !saved.has(id);
-      if (writeSavedOutfit(id, isSaved)) unsavedChanges.delete(id);
-      else unsavedChanges.set(id, isSaved);
-      status.textContent = unsavedChanges.size
-        ? 'Browser storage is unavailable. This change may be lost when you leave or refresh.'
-        : '';
-      refreshBookmarks();
-      if (showingSaved() && !saved.has(id)) {
-        (saved.size ? savedLink : explore).focus();
-      }
-    });
+  for (const card of grid.querySelectorAll('.outfit-card')) {
+    registerOutfit(outfitBrowse.resolve(card.querySelector('.outfit-feedback').dataset.outfitId));
   }
+  grid.addEventListener('fitcheck:card-added', ({ detail }) => registerOutfit(detail));
   window.addEventListener('storage', ({ key }) => {
     if (key === null || key === savedOutfitsKey || key.startsWith(savedOutfitPrefix)) refreshBookmarks();
   });

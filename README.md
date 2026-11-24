@@ -4,10 +4,36 @@ A digital wardrobe app that helps users organize their clothes and plan outfits.
 ## Outfit recommendations by occasion
 
 Open `index.html` and choose Work, Dinner Out, Date Night, Casual Weekend, or
-Party. Each card opens Outfit Ideas with two curated looks from the wardrobe.
+Party. Each card opens Outfit Ideas with curated and generated wardrobe looks.
 Use the occasion links above the outfits to switch, or choose **Any occasion**
 to clear the filter. The selected occasion is part of the URL, so refreshing
 keeps the same view. Like and Dislike selections follow an outfit across views.
+
+## How generated outfits work
+
+`wardrobe-catalog.js` is the shared source for Wardrobe and generated outfits.
+It keeps the original category, season, and trip tags and adds item-level
+recommendation attributes. The generator builds a top-and-bottom pair or starts
+with a dress, adds suitable shoes, and considers a light layer or accessory.
+It rejects combinations without a common dress code or coordinated palette,
+and checks specific pairing rules for layering, denim, activewear, and formal
+dresses. A compatible jacket can extend a combination to cool weather.
+Walking requires walking-suitable shoes and room to move in the rest of the outfit.
+
+Every selected occasion and context filter must match. The generator keeps up
+to two discovery variants per base and also retains eligible liked variants
+for ranking. The list gives distinct garment bases priority and saves extra
+liked variants for later results. Exact duplicates keep their predefined card.
+Personalized scores favor variety among similarly ranked looks, while the
+context explanation names the selected dress code when the outfit qualifies.
+**Show more outfits** reveals six more from the
+same ranked list, so the current filters and earlier cards stay in place.
+
+A generated outfit's ID is based on its stable wardrobe item IDs. Saved looks,
+wear records, and feedback can resolve that ID independently of the current
+recommendation list. Retain catalog records for retired pieces if existing
+saved outfits must remain readable. The seven predefined outfit IDs stay
+the same. Data remains local to the browser and no service is required.
 
 ## Personalized outfit order
 

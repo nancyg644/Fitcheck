@@ -1,4 +1,4 @@
-function setupWearHistory(outfits) {
+function setupWearHistory(resolveOutfit) {
   const list = document.getElementById('wear-history-list');
   const empty = document.getElementById('wear-history-empty');
   const status = document.getElementById('wear-history-status');
@@ -10,6 +10,8 @@ function setupWearHistory(outfits) {
   const title = document.getElementById('wear-date-title');
   const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' });
   const controls = new Map();
+  const outfitOptions = new Set();
+  const knownIds = { has: (id) => Boolean(resolveOutfit(id)) };
   const unsavedChanges = new Map();
   let entries = new Map();
   let draft;
@@ -42,11 +44,11 @@ function setupWearHistory(outfits) {
     const sorted = newestWearsFirst(entries.values()).filter(({ outfitId }) => !filter.value || filter.value === outfitId);
     const rows = document.createDocumentFragment();
     for (const entry of sorted) {
-      const { card, name } = controls.get(entry.outfitId);
+      const { items, name } = resolveOutfit(entry.outfitId);
       const row = document.createElement('li');
       row.className = 'outfit-card wear-history-entry';
       row.dataset.wearId = entry.id;
-      const photos = card.querySelector('.outfit-images').cloneNode(true);
+      const photos = outfitPhotos(items);
       const heading = document.createElement('h2');
       heading.textContent = name;
       const time = document.createElement('time');
@@ -78,6 +80,7 @@ function setupWearHistory(outfits) {
       if (entry) entries.set(id, entry);
       else entries.delete(id);
     }
+    for (const { outfitId } of entries.values()) addFilterOption(resolveOutfit(outfitId));
     renderControls();
     if (window.location.hash === '#wear-history') renderHistory();
   }
@@ -95,7 +98,7 @@ function setupWearHistory(outfits) {
     if (dialog.open) return;
     const today = localWearDate();
     draft = { outfitId, entry };
-    title.textContent = `${entry ? 'Edit wear for' : 'Log wear for'} ${controls.get(outfitId).name}`;
+    title.textContent = `${entry ? 'Edit wear for' : 'Log wear for'} ${resolveOutfit(outfitId).name}`;
     dateInput.max = today;
     dateInput.value = entry?.date ?? today;
     error.textContent = '';
@@ -131,9 +134,14 @@ function setupWearHistory(outfits) {
   dialog.querySelector('[data-cancel-wear]').addEventListener('click', () => dialog.close());
   filter.addEventListener('change', renderHistory);
 
-  for (const { id, card } of outfits) {
-    if (!id) continue;
-    const name = card.querySelector('h3').textContent;
+  function addFilterOption({ id, name }) {
+    if (outfitOptions.has(id)) return;
+    outfitOptions.add(id);
+    filter.add(new Option(name, id));
+  }
+
+  function registerOutfit({ id, card, name }) {
+    if (controls.has(id)) return;
     const summary = document.createElement('p');
     summary.className = 'wear-summary';
     const actions = document.createElement('div');
@@ -148,14 +156,14 @@ function setupWearHistory(outfits) {
     );
     card.append(summary, actions);
     controls.set(id, { card, name, summary });
-    filter.add(new Option(name, id));
+    addFilterOption({ id, name });
+    renderControls();
   }
 
-  const knownIds = new Set(controls.keys());
   window.addEventListener('storage', ({ key }) => {
     if (key === null || key === wearHistoryKey ||
         key.startsWith(wearRecordPrefix) || key.startsWith(wearEntryPrefix)) refreshRecords();
   });
   refreshRecords();
-  return renderHistory;
+  return { renderHistory, registerOutfit };
 }

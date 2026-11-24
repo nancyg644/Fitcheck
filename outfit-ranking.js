@@ -1,24 +1,23 @@
 function rankOutfits(candidates, feedback, preferences = {}) {
+  const reactions = new Map();
+  const likedItems = new Map();
+  const dislikedItems = new Map();
+  for (const { id, itemIds, reaction } of feedback) {
+    if (reaction !== 'up' && reaction !== 'down') continue;
+    const items = new Set(itemIds);
+    reactions.set(id, { reaction, items });
+    const counts = reaction === 'up' ? likedItems : dislikedItems;
+    for (const item of items) counts.set(item, (counts.get(item) ?? 0) + 1);
+  }
   return candidates.map((outfit, index) => {
-    const likedItems = new Set();
-    const dislikedItems = new Set();
-    let score = 0;
-    let liked = false;
-
-    for (const { id, itemIds, reaction } of feedback) {
-      if (reaction !== 'up' && reaction !== 'down') continue;
-      if (id === outfit.id) {
-        liked = reaction === 'up';
-        score = reaction === 'up' ? 3 : -3;
-        continue;
-      }
-
-      const items = reaction === 'up' ? likedItems : dislikedItems;
-      itemIds.forEach((itemId) => items.add(itemId));
-    }
-
+    const direct = reactions.get(outfit.id);
+    const liked = direct?.reaction === 'up';
+    let score = direct ? (liked ? 3 : -3) : 0;
     for (const itemId of new Set(outfit.itemIds)) {
-      score += Number(likedItems.has(itemId)) - Number(dislikedItems.has(itemId));
+      const ownItem = direct?.items.has(itemId) ?? false;
+      const otherLikes = (likedItems.get(itemId) ?? 0) - Number(ownItem && liked);
+      const otherDislikes = (dislikedItems.get(itemId) ?? 0) - Number(ownItem && !liked);
+      score += Number(otherLikes > 0) - Number(otherDislikes > 0);
     }
 
     const styles = (preferences.styles ?? []).filter((style) => outfit.styles?.includes(style));

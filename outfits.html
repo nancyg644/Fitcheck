@@ -354,6 +354,24 @@
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .outfit-images[data-piece-count="2"],
+    .outfit-images[data-piece-count="4"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .outfit-images[data-piece-count="5"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .outfit-images[data-piece-count="4"],
+    .outfit-images[data-piece-count="5"] {
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+
+    #show-more-outfits {
+      margin-top: 16px;
+    }
+
     /* Outfit details */
 
     .outfit-card h3 {
@@ -654,6 +672,7 @@
         </div>
 
       </div>
+      <button class="feedback-button" id="show-more-outfits" type="button" hidden>Show more outfits</button>
       <div class="recommendation-settings">
         <button class="feedback-button" id="reset-recommendations" type="button">Reset recommendation preferences</button>
         <p class="intro" id="recommendation-status" role="status"></p>
@@ -687,6 +706,10 @@
   <script src="outfit-context-controls.js"></script>
   <script src="outfit-ranking.js"></script>
   <script src="style-preferences-store.js"></script>
+  <script src="wardrobe-catalog.js"></script>
+  <script src="outfit-generator.js"></script>
+  <script src="outfit-variety.js"></script>
+  <script src="outfit-cards.js"></script>
   <script src="outfit-recommendations.js"></script>
   <script src="saved-outfits-store.js"></script>
   <script src="wear-history-store.js"></script>

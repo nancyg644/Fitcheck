@@ -7,8 +7,12 @@ function readSavedOutfits(knownIds, storage) {
     let legacy;
     try { legacy = JSON.parse(store.getItem(savedOutfitsKey)); } catch { legacy = null; }
     const saved = new Set(Array.isArray(legacy) ? legacy.filter((id) => knownIds.has(id)) : []);
-    for (const id of knownIds) {
-      const state = store.getItem(savedOutfitPrefix + id);
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i);
+      if (!key?.startsWith(savedOutfitPrefix)) continue;
+      const id = key.slice(savedOutfitPrefix.length);
+      if (!knownIds.has(id)) continue;
+      const state = store.getItem(key);
       if (state === '1') saved.add(id);
       if (state === '0') saved.delete(id);
     }
