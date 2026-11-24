@@ -31,7 +31,7 @@ if (typeof module !== 'undefined') {
 }
 
 // Each outfit has a stable ID so its feedback stays separate, even if cards move.
-if (typeof document !== 'undefined') document.querySelectorAll('.outfit-feedback').forEach((group) => {
+function bindOutfitFeedback(group) {
   const storageKey = outfitFeedbackPrefix + group.dataset.outfitId;
   const buttons = group.querySelectorAll('[data-reaction]');
   let selected = readOutfitFeedback(group.dataset.outfitId);
@@ -70,4 +70,6 @@ if (typeof document !== 'undefined') document.querySelectorAll('.outfit-feedback
       }
     });
   });
-});
+}
+
+if (typeof document !== 'undefined') document.querySelectorAll('.outfit-feedback').forEach(bindOutfitFeedback);

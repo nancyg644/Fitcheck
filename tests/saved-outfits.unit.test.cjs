@@ -6,7 +6,12 @@ const {
 
 test('bookmark writes change only the selected ID and can remove legacy bookmarks', () => {
   const data = new Map([['fitcheck:saved-outfits', '["everyday-casual"]']]);
-  const storage = { getItem: (key) => data.get(key), setItem: (key, value) => data.set(key, value) };
+  const storage = {
+    get length() { return data.size; },
+    key: (index) => [...data.keys()][index],
+    getItem: (key) => data.get(key),
+    setItem: (key, value) => data.set(key, value),
+  };
   const known = new Set(['everyday-casual', 'office-polish']);
   assert.equal(writeSavedOutfit('office-polish', true, storage), true);
   assert.deepEqual([...readSavedOutfits(known, storage)], ['everyday-casual', 'office-polish']);

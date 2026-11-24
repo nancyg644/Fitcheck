@@ -44,6 +44,17 @@ async function openFitCheck(t, options) {
   return { page, errors, base: `http://127.0.0.1:${server.address().port}` };
 }
 
+// The legacy-only fixture preserves exact assertions for the original seven outfits.
+// Generated outfits are exercised without this fixture in the integration journeys below.
+async function openLegacyFitCheck(t, options) {
+  const fitCheck = await openFitCheck(t, options);
+  await fitCheck.page.route('**/outfit-generator.js', async (route) => {
+    const response = await route.fetch();
+    await route.fulfill({ response, body: (await response.text()) + '\ngenerateOutfits = () => [];' });
+  });
+  return fitCheck;
+}
+
 async function logWear(page, outfit, date) {
   await page.getByRole('button', { name: `Log wear for ${outfit}`, exact: true }).click();
   if (date) await page.getByLabel('Date worn').fill(date);
@@ -51,8 +62,8 @@ async function logWear(page, outfit, date) {
 }
 
 test('system: real Like/Dislike buttons remain mutually exclusive and survive refresh', async (t) => {
-  const { page, errors, base } = await openFitCheck(t);
-  await page.goto(`${base}/outfits.html`);
+  const { page, errors, base } = await openLegacyFitCheck(t);
+  await page.goto(`${base}/outfits.html?occasion=casual-weekend`);
   const group = page.getByRole('group', { name: 'Feedback for Everyday Casual', exact: true });
   const like = group.getByRole('button', { name: 'Thumbs up for Everyday Casual', exact: true });
   const dislike = group.getByRole('button', { name: 'Thumbs down for Everyday Casual', exact: true });
@@ -74,7 +85,7 @@ test('system: real Like/Dislike buttons remain mutually exclusive and survive re
 });
 
 test('system: all five Home cards navigate to the matching outfits on mobile', async (t) => {
-  const { page, errors, base } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const { page, errors, base } = await openLegacyFitCheck(t, { viewport: { width: 320, height: 700 } });
   const occasions = [
     ['Work', 'work', ['Smart Casual', 'Office Polish']],
     ['Dinner Out', 'dinner-out', ['Smart Casual', 'Satin After Dark']],
@@ -101,13 +112,15 @@ test('system: all five Home cards navigate to the matching outfits on mobile', a
   assert.equal(await partyLike.getAttribute('aria-pressed'), 'true');
   await page.getByRole('link', { name: 'Any occasion', exact: true }).click();
   await page.waitForURL(`${base}/outfits.html`, { waitUntil: 'load' });
+  assert.equal(await page.locator('.outfit-card:visible').count(), 6);
+  await page.getByRole('button', { name: 'Show more outfits' }).click();
   assert.equal(await page.locator('.outfit-card:visible').count(), 7);
   assert.equal(await partyLike.getAttribute('aria-pressed'), 'true');
   assert.deepEqual(errors, []);
 });
 
 test('system: feedback personalizes eligible outfits on refresh and can be reset', async (t) => {
-  const { page, errors, base } = await openFitCheck(t);
+  const { page, errors, base } = await openLegacyFitCheck(t);
   const titles = () => page.locator('.outfit-card:visible h3').allTextContents();
   const recommended = () => page.locator('.outfit-card:visible').filter({
     has: page.getByText('Recommended for you', { exact: true }),
@@ -157,7 +170,7 @@ test('system: feedback personalizes eligible outfits on refresh and can be reset
 });
 
 test('system: unknown and empty occasions offer a path back to outfits', async (t) => {
-  const { page, errors, base } = await openFitCheck(t);
+  const { page, errors, base } = await openLegacyFitCheck(t);
   await page.goto(`${base}/outfits.html?occasion=unknown`);
   assert.equal(await page.getByRole('heading', { level: 1 }).innerText(), 'Occasion unavailable');
   assert.equal(await page.locator('.outfit-card:visible').count(), 0);
@@ -177,12 +190,14 @@ test('system: unknown and empty occasions offer a path back to outfits', async (
   assert.equal(await page.getByText('No outfits match this occasion.', { exact: false }).isVisible(), true);
   await page.getByRole('link', { name: 'Any occasion', exact: true }).click();
   await page.waitForURL(`${base}/outfits.html`, { waitUntil: 'load' });
+  assert.equal(await page.locator('.outfit-card:visible').count(), 6);
+  await page.getByRole('button', { name: 'Show more outfits' }).click();
   assert.equal(await page.locator('.outfit-card:visible').count(), 7);
   assert.deepEqual(errors, []);
 });
 
 test('system: bookmarks persist across occasions and restore the personalized view', async (t) => {
-  const { page, errors, base } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const { page, errors, base } = await openLegacyFitCheck(t, { viewport: { width: 320, height: 700 } });
   const titles = () => page.locator('.outfit-card:visible h3').allTextContents();
   const savedView = (count) => page.getByRole('link', { name: `Saved (${count})`, exact: true });
   const save = (name) => page.getByRole('button', { name: `Save ${name}`, exact: true });
@@ -236,7 +251,7 @@ test('system: bookmarks persist across occasions and restore the personalized vi
 });
 
 test('system: blocked storage keeps bookmarks usable for the current visit', async (t) => {
-  const { page, errors, base } = await openFitCheck(t);
+  const { page, errors, base } = await openLegacyFitCheck(t);
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', {
       get() { throw new DOMException('Blocked', 'SecurityError'); },
@@ -254,7 +269,7 @@ test('system: blocked storage keeps bookmarks usable for the current visit', asy
 });
 
 test('system: wear logging follows local dates and preserves bookmarks and recommendations', async (t) => {
-  const { page, errors, base } = await openFitCheck(t, {
+  const { page, errors, base } = await openLegacyFitCheck(t, {
     locale: 'en-US', timezoneId: 'America/New_York', viewport: { width: 320, height: 700 },
   });
   const casual = `${base}/outfits.html?occasion=casual-weekend`;
@@ -339,7 +354,7 @@ test('system: wear logging follows local dates and preserves bookmarks and recom
 });
 
 test('system: blocked storage supports wear logging and deletion for the visit', async (t) => {
-  const { page, errors, base } = await openFitCheck(t);
+  const { page, errors, base } = await openLegacyFitCheck(t);
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', {
       get() { throw new DOMException('Blocked', 'SecurityError'); },
@@ -358,7 +373,7 @@ test('system: blocked storage supports wear logging and deletion for the visit',
 });
 
 test('system: past and same-day wear entries stay independent through edits and refresh', async (t) => {
-  const { page, errors, base } = await openFitCheck(t, { locale: 'en-US', timezoneId: 'America/New_York' });
+  const { page, errors, base } = await openLegacyFitCheck(t, { locale: 'en-US', timezoneId: 'America/New_York' });
   await page.clock.setFixedTime(new Date('2026-11-23T15:00:00Z'));
   await page.goto(`${base}/outfits.html?occasion=casual-weekend`);
   await page.evaluate(() => {
@@ -391,7 +406,7 @@ test('system: past and same-day wear entries stay independent through edits and 
 });
 
 test('system: profile links, multiple choices, ranking explanations, and isolated reset', async (t) => {
-  const { page, base, errors } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const { page, base, errors } = await openLegacyFitCheck(t, { viewport: { width: 320, height: 700 } });
   const profile = `${base}/profile.html`;
   const work = `${base}/outfits.html?occasion=work`;
   const profileLink = page.getByRole('link', { name: 'Style profile', exact: true });
@@ -446,7 +461,7 @@ test('system: profile links, multiple choices, ranking explanations, and isolate
 });
 
 test('system: a blocked style profile leaves outfit recommendations available', async (t) => {
-  const { page, base, errors } = await openFitCheck(t);
+  const { page, base, errors } = await openLegacyFitCheck(t);
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', {
       get() { throw new DOMException('Blocked', 'SecurityError'); },
@@ -463,7 +478,7 @@ test('system: a blocked style profile leaves outfit recommendations available', 
 });
 
 test('system: strict contextual filters exclude partial matches and preserve the other views', async (t) => {
-  const { page, base, errors } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const { page, base, errors } = await openLegacyFitCheck(t, { viewport: { width: 320, height: 700 } });
   const weekend = `${base}/outfits.html?occasion=casual-weekend`;
   const refine = page.locator('#refine-outfit');
   const titles = () => page.locator('.outfit-grid .outfit-card:visible h3').allTextContents();
@@ -527,7 +542,7 @@ test('system: strict contextual filters exclude partial matches and preserve the
 });
 
 test('system: invalid context is ignored and an unknown occasion stays empty', async (t) => {
-  const { page, base, errors } = await openFitCheck(t);
+  const { page, base, errors } = await openLegacyFitCheck(t);
   await page.goto(`${base}/outfits.html?occasion=work&weather=freezing&activity=unknown`);
   assert.deepEqual(await page.locator('.outfit-grid .outfit-card:visible h3').allTextContents(), ['Smart Casual', 'Office Polish']);
   assert.equal(await page.locator('.context-explanation').count(), 0);
@@ -545,7 +560,7 @@ test('system: invalid context is ignored and an unknown occasion stays empty', a
 });
 
 test('system: two tabs preserve independent bookmarks and wears and reflect removals', async (t) => {
-  const { page: first, base, errors } = await openFitCheck(t);
+  const { page: first, base, errors } = await openLegacyFitCheck(t);
   const second = await first.context().newPage();
   second.on('pageerror', (error) => errors.push(error.message));
   const url = `${base}/outfits.html`;
@@ -584,7 +599,7 @@ test('system: two tabs preserve independent bookmarks and wears and reflect remo
 });
 
 test('system: feedback explanations follow switches and clears without rearranging cards', async (t) => {
-  const { page, base } = await openFitCheck(t);
+  const { page, base } = await openLegacyFitCheck(t);
   await page.goto(`${base}/outfits.html?occasion=casual-weekend`);
   const card = (name) => page.locator('.outfit-grid .outfit-card').filter({
     has: page.getByRole('heading', { name, exact: true }),
@@ -662,4 +677,85 @@ test('system: Wardrobe combines category, season and destination and clears an e
   assert.equal(await page.locator('[data-filter="all"]').getAttribute('aria-pressed'), 'true');
   assert.equal(await page.locator('#season-filter').inputValue(), '');
   assert.equal(await page.locator('#place-filter').inputValue(), '');
+});
+
+test('system: generated outfits respect strict filters and Show more reveals six without repeats', async (t) => {
+  const { page, base, errors } = await openFitCheck(t, { viewport: { width: 320, height: 700 } });
+  const outfits = `${base}/outfits.html`;
+  const ids = () => page.locator('.outfit-grid .outfit-card:visible .outfit-feedback')
+    .evaluateAll((groups) => groups.map((group) => group.dataset.outfitId));
+  for (const occasion of ['work', 'dinner-out', 'date-night', 'casual-weekend', 'party']) {
+    await page.goto(`${outfits}?occasion=${occasion}`);
+    const first = await ids();
+    assert.equal(first.length, 6, occasion);
+    assert.ok(first.some((id) => id.startsWith('gen-v1:')), occasion);
+    const bases = await page.evaluate((ids) => ids.map((id) => outfitBrowse.resolve(id).base), first);
+    assert.equal(new Set(bases).size, first.length, occasion);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+  }
+  const query = 'occasion=casual-weekend&weather=cool&dress-code=casual&setting=both&activity=walking';
+  await page.goto(`${outfits}?${query}`);
+  const first = await ids();
+  assert.equal(first.length, 6);
+  const more = page.getByRole('button', { name: 'Show more outfits', exact: true });
+  await more.click();
+  const expanded = await ids();
+  assert.equal(expanded.length, 12);
+  assert.deepEqual(expanded.slice(0, 6), first);
+  assert.equal(page.url(), `${outfits}?${query}`);
+  assert.ok(await page.evaluate((ids) => {
+    const criteria = readOutfitContext(new URLSearchParams(location.search));
+    return ids.every((id) => {
+      const outfit = outfitBrowse.resolve(id);
+      return outfit.occasions.includes('casual-weekend') &&
+        matchOutfitContext(outfit.context, criteria).missed.length === 0;
+    });
+  }, expanded));
+  for (let i = 0; i < 20 && await more.isVisible(); i++) await more.click();
+  assert.equal(await more.isVisible(), false);
+  const all = await ids();
+  assert.equal(new Set(all).size, all.length);
+  await page.reload();
+  assert.deepEqual(await ids(), first);
+  await page.goto(`${outfits}?occasion=dinner-out&weather=cool&dress-code=dressy&setting=outdoors`);
+  assert.deepEqual(await ids(), []);
+  assert.equal(await page.locator('#context-empty').isVisible(), true);
+  assert.equal(await more.isVisible(), false);
+  assert.deepEqual(errors, []);
+});
+
+test('system: generated saves, feedback, and dated wears survive an unrelated search and sync across tabs', async (t) => {
+  const { page, base, errors } = await openFitCheck(t);
+  const second = await page.context().newPage();
+  second.on('pageerror', (error) => errors.push(error.message));
+  await second.goto(`${base}/outfits.html?occasion=party&weather=cold#saved`);
+  await page.goto(`${base}/outfits.html?occasion=casual-weekend&weather=cool`);
+  const outfit = page.locator('.outfit-grid .outfit-card:visible').filter({
+    has: page.locator('[data-outfit-id^="gen-v1:"]'),
+  }).first();
+  const name = await outfit.locator('h3').innerText();
+  const id = await outfit.locator('.outfit-feedback').getAttribute('data-outfit-id');
+  const like = outfit.getByRole('button', { name: `Thumbs up for ${name}`, exact: true });
+  await like.click();
+  assert.equal(await like.getAttribute('aria-pressed'), 'true');
+  await outfit.getByRole('button', { name: `Save ${name}`, exact: true }).click();
+  await second.getByRole('heading', { name, exact: true }).waitFor();
+  assert.equal(await second.locator(`[data-outfit-id="${id}"]`).count(), 1);
+  assert.equal(await second.getByRole('button', { name: `Thumbs up for ${name}`, exact: true }).getAttribute('aria-pressed'), 'true');
+  await logWear(page, name, '2024-11-10');
+  await logWear(page, name, '2024-11-10');
+  await second.getByRole('link', { name: 'Wear History', exact: true }).click();
+  await second.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  assert.deepEqual(await second.locator('#wear-history-list h2').allTextContents(), [name, name]);
+  await second.reload();
+  assert.deepEqual(await second.locator('#wear-history-list time').evaluateAll((nodes) => nodes.map((node) => node.dateTime)),
+    ['2024-11-10', '2024-11-10']);
+  await second.getByRole('link', { name: 'Saved (1)', exact: true }).click();
+  await second.getByRole('heading', { name: 'Saved outfits', exact: true }).waitFor();
+  const dislike = second.getByRole('button', { name: `Thumbs down for ${name}`, exact: true });
+  await dislike.click();
+  assert.equal(await dislike.getAttribute('aria-pressed'), 'true');
+  await page.waitForFunction((id) =>
+    document.querySelector(`[data-outfit-id="${id}"] [data-reaction="down"]`).getAttribute('aria-pressed') === 'true', id);
+  assert.deepEqual(errors, []);
 });
