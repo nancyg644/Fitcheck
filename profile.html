@@ -74,6 +74,17 @@
     }
     .profile-actions button[type="submit"] { background: #29241f; color: #faf8f5; border-color: #29241f; }
     #profile-status:empty { margin: 0; }
+    #profile-analytics { margin-top: 20px; }
+    #profile-analytics summary { cursor: pointer; padding: 10px 0; min-height: 44px; }
+    #profile-analytics summary:focus-visible { outline: 3px solid #b66d4b; outline-offset: 3px; }
+    .analytics-metrics {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .analytics-metrics dd { margin: 0; overflow-wrap: anywhere; }
     .bottom-nav {
       position: sticky;
       bottom: 0;
@@ -96,7 +107,7 @@
     .bottom-nav a span { font-size: 22px; }
   </style>
 </head>
-<body>
+<body data-analytics-page="profile">
   <div class="app">
     <header>
       <a class="logo" href="index.html">FitCheck</a>
@@ -124,6 +135,17 @@
         </div>
         <p id="profile-status" role="status"></p>
       </form>
+      <details id="profile-analytics">
+        <summary>Local analytics</summary>
+        <p class="intro">Metrics are stored in this browser. Preliminary wear rates include recent sessions. Final rates include only sessions with a closed 14-day follow-up.</p>
+        <dl class="analytics-metrics" aria-label="FitCheck analytics metrics"></dl>
+        <div class="profile-actions">
+          <button type="button" data-export="json">Export JSON</button>
+          <button type="button" data-export="csv">Export CSV</button>
+          <button type="button" id="clear-analytics">Clear analytics</button>
+        </div>
+        <p class="intro" id="analytics-status" aria-live="polite"></p>
+      </details>
     </main>
     <nav class="bottom-nav" aria-label="Main navigation">
       <a href="index.html"><span aria-hidden="true">⌂</span>Home</a>
@@ -131,6 +153,11 @@
       <a href="outfits.html"><span aria-hidden="true">✧</span>Outfits</a>
     </nav>
   </div>
+  <script src="analytics-store.js"></script>
+  <script src="analytics-session.js"></script>
+  <script src="analytics-metrics.js"></script>
+  <script src="analytics-browser.js"></script>
+  <script src="analytics-profile.js"></script>
   <script src="style-preferences-store.js"></script>
   <script src="style-profile.js"></script>
   <script src="sticky-nav-focus.js"></script>

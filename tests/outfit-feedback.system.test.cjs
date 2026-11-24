@@ -805,3 +805,159 @@ test('system: a multi-code outfit explains the selected Dressy or Smart casual f
   assert.doesNotMatch(await smart.locator('.outfit-description').innerText(), /dressy/i);
   assert.deepEqual(errors, []);
 });
+
+test('system: analytics deduplicates searches, links wears explicitly, and exports without clearing product data', async (t) => {
+  const { page, base, errors } = await openFitCheck(t, { viewport: { width: 320, height: 700 }, timezoneId: 'UTC' });
+  const start = Date.parse('2026-11-24T14:00:00Z');
+  await page.clock.setFixedTime(start);
+  const work = `${base}/outfits.html?occasion=work`;
+  const events = () => page.evaluate(() => fitcheckAnalytics.snapshot());
+  const dialog = page.getByRole('dialog');
+  const wearChoice = page.locator('#wear-choice');
+  await page.goto(work);
+  await page.reload();
+  let data = await events();
+  assert.equal(data.filter(({ type }) => type === 'recommendation_session_started').length, 1);
+  assert.equal(data.filter(({ type }) => type === 'recommendations_displayed').length, 1);
+  await page.getByRole('button', { name: 'Show more outfits', exact: true }).click();
+  data = await events();
+  assert.equal(data.filter(({ type }) => type === 'show_more_selected').length, 1);
+  assert.deepEqual(data.filter(({ type }) => type === 'recommendations_displayed').map(({ metadata }) => metadata.batch).sort(), [1, 2]);
+  assert.equal(new Set(data.filter(({ type }) => type === 'recommendations_displayed')
+    .flatMap(({ metadata }) => metadata.outfitIds)).size, 12);
+
+  await page.getByText('Refine your outfit', { exact: true }).click();
+  await page.getByLabel('Weather').selectOption('cool');
+  await page.getByRole('button', { name: 'Apply context', exact: true }).click();
+  await page.waitForURL(`${work}&weather=cool`, { waitUntil: 'load' });
+  data = await events();
+  assert.equal(data.filter(({ type }) => type === 'recommendation_session_started').length, 1);
+  assert.equal(data.filter(({ type }) => type === 'occasion_selected').length, 1);
+  assert.equal(new Set(data.filter(({ type }) => type === 'context_filters_applied').map((event) => event.metadata.searchId)).size, 2);
+  const card = page.locator('.outfit-grid .outfit-card:visible').first();
+  const name = await card.locator('h3').innerText();
+  const outfitId = await card.locator('.outfit-feedback').getAttribute('data-outfit-id');
+  await card.getByRole('button', { name: /^Thumbs up for/ }).click();
+  await card.getByRole('button', { name: /^Save / }).click();
+  const choose = card.getByRole('button', { name: /^Choose this outfit/ });
+  await choose.click();
+  await choose.click();
+  const choice = (await events()).filter(({ type }) => type === 'outfit_selected');
+  assert.equal(choice.length, 1);
+  assert.equal(choice[0].metadata.outfitId, outfitId);
+  const log = page.getByRole('button', { name: `Log wear for ${name}`, exact: true });
+  await log.click();
+  assert.equal(await wearChoice.inputValue(), '');
+  await dialog.getByRole('button', { name: 'Save wear' }).click();
+  await log.click();
+  await wearChoice.selectOption(choice[0].eventId);
+  await dialog.getByRole('button', { name: 'Save wear' }).click();
+  await page.clock.setFixedTime(start + 2 * 86_400_000);
+  await log.click();
+  await page.getByLabel('Date worn').fill('2026-11-25');
+  await wearChoice.selectOption(choice[0].eventId);
+  await dialog.getByRole('button', { name: 'Save wear' }).click();
+  const logged = (await events()).filter(({ type }) => type === 'wear_logged');
+  assert.equal(logged.filter(({ metadata }) => metadata.choiceId === null).length, 1);
+  assert.equal(logged.filter(({ metadata }) => metadata.choiceId === choice[0].eventId).length, 2);
+  await page.evaluate(() => window.dispatchEvent(new ErrorEvent('error', { message: 'private content' })));
+
+  await page.getByRole('link', { name: 'Style profile', exact: true }).click();
+  await page.getByRole('heading', { name: 'Your style profile' }).waitFor();
+  await page.getByRole('checkbox', { name: 'Classic', exact: true }).check();
+  await page.getByRole('button', { name: 'Save My Preferences' }).click();
+  await page.getByText('Local analytics', { exact: true }).click();
+  const metric = (label) => page.locator('.analytics-metrics dt').filter({ hasText: label })
+    .locator('xpath=following-sibling::dd[1]');
+  assert.equal(await metric('Preliminary confirmed-wear rate').innerText(), '100%');
+  assert.equal(await metric('Final confirmed-wear rate').innerText(), '—');
+  assert.equal(await metric('Sessions within follow-up').innerText(), '1');
+  assert.equal(await metric('Application errors').innerText(), '1');
+  async function exportText(format) {
+    const [download] = await Promise.all([
+      page.waitForEvent('download'), page.getByRole('button', { name: `Export ${format.toUpperCase()}` }).click(),
+    ]);
+    assert.equal(download.suggestedFilename(), `fitcheck-analytics.${format}`);
+    const chunks = [];
+    for await (const chunk of await download.createReadStream()) chunks.push(chunk);
+    return Buffer.concat(chunks).toString('utf8');
+  }
+  const json = await exportText('json');
+  assert.equal(JSON.parse(json).events.filter(({ type }) => type === 'wear_logged').length, 3);
+  assert.doesNotMatch(json, /private content/);
+  assert.match(await exportText('csv'), /^sessionId,startedAt,finalized,wore,/);
+
+  await page.clock.setFixedTime(start + 15 * 86_400_000);
+  await page.reload();
+  await page.getByText('Local analytics', { exact: true }).click();
+  assert.equal(await metric('Final confirmed-wear rate').innerText(), '100%');
+
+  await page.goto(`${work}#wear-history`);
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  const [first, second] = logged.filter(({ metadata }) => metadata.choiceId !== null);
+  const row = (event) => page.locator(`[data-wear-id="${event.metadata.wearId}"]`);
+  await row(first).getByRole('button', { name: /^Edit date/ }).click();
+  await page.getByLabel('Date worn').fill('2026-11-23');
+  await dialog.getByRole('button', { name: 'Save wear' }).click();
+  page.once('dialog', (prompt) => prompt.accept());
+  await row(second).getByRole('button', { name: /^Delete wear/ }).click();
+  await page.goto(`${base}/profile.html`);
+  await page.getByText('Local analytics', { exact: true }).click();
+  assert.equal(await metric('Preliminary confirmed-wear rate').innerText(), '0%');
+  assert.equal(await metric('Final confirmed-wear rate').innerText(), '0%');
+  const protectedData = () => page.evaluate(() => Object.entries(localStorage)
+    .filter(([key]) => !key.startsWith('fitcheck:analytics:')).sort());
+  const before = await protectedData();
+  page.once('dialog', (prompt) => prompt.dismiss());
+  await page.getByRole('button', { name: 'Clear analytics' }).click();
+  assert.ok((await events()).length > 0);
+  page.once('dialog', (prompt) => prompt.accept());
+  await page.getByRole('button', { name: 'Clear analytics' }).click();
+  assert.deepEqual(await events(), []);
+  assert.deepEqual(await protectedData(), before);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 320);
+  await page.goto(`${work}#wear-history`);
+  await page.getByRole('heading', { name: 'Wear History', exact: true }).waitFor();
+  await row(first).getByRole('button', { name: /^Edit date/ }).click();
+  await page.getByLabel('Date worn').fill('2026-11-24');
+  await dialog.getByRole('button', { name: 'Save wear' }).click();
+  assert.equal((await events()).find(({ type }) => type === 'wear_edited').metadata.choiceId, null);
+  assert.deepEqual(errors, []);
+});
+
+test('system: analytics tracks separate tabs and leaves recommendations usable when storage is blocked', async (t) => {
+  const { page, base, errors } = await openFitCheck(t);
+  const second = await page.context().newPage();
+  await Promise.all([
+    page.goto(`${base}/outfits.html?occasion=work`),
+    second.goto(`${base}/outfits.html?occasion=party&weather=cold`),
+  ]);
+  const read = () => page.evaluate(() => fitcheckAnalytics.snapshot());
+  let data = await read();
+  assert.equal(new Set(data.filter(({ type }) => type === 'recommendation_session_started').map(({ sessionId }) => sessionId)).size, 2);
+  assert.equal(data.filter(({ type }) => type === 'no_recommendations_found').length, 1);
+  await page.goto(`${base}/profile.html`);
+  await page.getByText('Local analytics', { exact: true }).click();
+  await second.clock.setFixedTime(Date.now() + 31 * 60_000);
+  await second.reload();
+  await page.waitForFunction(() => [...document.querySelectorAll('.analytics-metrics dt')]
+    .find((term) => term.textContent === 'Recommendation sessions')?.nextElementSibling.textContent === '3');
+  data = await read();
+  assert.equal(data.filter(({ type }) => type === 'no_recommendations_found').length, 2);
+
+  const blocked = await page.context().newPage();
+  await blocked.addInitScript(() => {
+    Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('Blocked', 'SecurityError'); } });
+  });
+  await blocked.goto(`${base}/outfits.html?occasion=work`);
+  assert.equal(await blocked.locator('.outfit-grid .outfit-card:visible').count(), 6);
+  await blocked.getByRole('button', { name: /^Choose this outfit/ }).first().click();
+  assert.ok(await blocked.getByText('This choice could not be stored in this browser.').isVisible());
+  await blocked.getByRole('button', { name: /^Log wear for/ }).first().click();
+  await blocked.getByRole('button', { name: 'Save wear', exact: true }).click();
+  assert.match(await blocked.locator('#wear-history-status').innerText(), /Browser storage is unavailable/);
+  await blocked.goto(`${base}/profile.html`);
+  await blocked.getByText('Local analytics', { exact: true }).click();
+  assert.ok(await blocked.getByRole('button', { name: 'Export JSON' }).isDisabled());
+  assert.deepEqual(errors, []);
+});

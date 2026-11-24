@@ -184,7 +184,8 @@
 
     .context-selections select,
     .wear-history-filter select,
-    .wear-date-dialog input {
+    .wear-date-dialog input,
+    .wear-date-dialog select {
       width: 100%;
       min-height: 44px;
       border: 1px solid #eae3da;
@@ -212,7 +213,8 @@
 
     #refine-outfit :focus-visible,
     .wear-history-filter select:focus-visible,
-    .wear-date-dialog input:focus-visible {
+    .wear-date-dialog input:focus-visible,
+    .wear-date-dialog select:focus-visible {
       outline: 3px solid #b66d4b;
       outline-offset: 2px;
     }
@@ -226,7 +228,7 @@
       margin: 4px;
     }
 
-    .wear-summary {
+    .wear-summary, .outfit-choice-status {
       color: #806f60;
       font-size: 12px;
       margin: 8px 4px 4px;
@@ -263,6 +265,18 @@
       margin-bottom: 14px;
       font-size: 12px;
       font-weight: 600;
+    }
+
+    .choose-outfit {
+      margin: 8px 4px;
+    }
+
+    .choose-outfit p:empty, [data-outfit-view="saved"] .choose-outfit {
+      display: none;
+    }
+
+    #wear-choice-controls {
+      margin-top: 12px;
     }
 
     #wear-date-error {
@@ -460,7 +474,7 @@
   </style>
 </head>
 
-<body>
+<body data-analytics-page="outfits">
   <div class="app">
 
     <!-- Header -->
@@ -529,6 +543,10 @@
           <h2 id="wear-date-title">Log wear</h2>
           <label for="wear-date">Date worn</label>
           <input type="date" id="wear-date" name="date" aria-describedby="wear-date-error" required autofocus>
+          <div id="wear-choice-controls" hidden>
+            <label for="wear-choice">Link to an earlier outfit choice (optional)</label>
+            <select id="wear-choice" name="wearChoice" aria-describedby="wear-date-error"></select>
+          </div>
           <p id="wear-date-error" role="alert"></p>
           <div class="wear-actions">
             <button type="submit" class="feedback-button">Save wear</button>
@@ -700,6 +718,11 @@
     </nav>
 
   </div>
+  <script src="analytics-store.js"></script>
+  <script src="analytics-session.js"></script>
+  <script src="analytics-metrics.js"></script>
+  <script src="analytics-browser.js"></script>
+  <script src="analytics-choice.js"></script>
   <script src="outfit-occasions.js"></script>
   <script src="outfit-feedback.js"></script>
   <script src="outfit-context.js"></script>
